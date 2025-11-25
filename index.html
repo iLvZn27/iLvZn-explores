@@ -1696,6 +1696,44 @@ async function downloadDriveFileAsBlob_resumable(fileId) {
           }
         });
       }
+// --- Extract smaller image thumbnail ---
+function extractImageThumbnail(file, maxSize = 512) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        const scale = Math.min(1, maxSize / Math.max(width, height));
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const thumbDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+        URL.revokeObjectURL(url);
+        resolve(thumbDataUrl);
+      } catch (e) {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      }
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(null);
+    };
+
+    img.src = url;
+  });
+}
+
 
       // --- In-memory state ---
       let stateData = {}; // name -> { name, visited, note, places:[], isHome }
@@ -2049,8 +2087,13 @@ async function downloadDriveFileAsBlob_resumable(fileId) {
           tile.appendChild(playIcon);
 
           tile.addEventListener("click", () => {
-            playSingleVideo(item);
-          });
+  playSingleVideo({
+    source: "existing",
+    id: m.id,
+    driveFileId: m.driveFileId || null
+  });
+});
+
 
           videosPreview.appendChild(tile);
         });
@@ -2286,64 +2329,108 @@ async function downloadDriveFileAsBlob_resumable(fileId) {
           }
         });
       }
+placeMediaInput.addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length || !currentStateName || !activePlaceId) return;
 
-      /* Handle place file input -> add to place (use existing extract/save functions) */
-      placeMediaInput.addEventListener("change", async (e) => {
-        const files = Array.from(e.target.files || []);
-        if (!files.length || !currentStateName || !activePlaceId) return;
+  const place = (stateData[currentStateName].places || []).find(p => p.id === activePlaceId);
+  if (!place) return;
 
-        const place = (stateData[currentStateName].places || []).find(p => p.id === activePlaceId);
-        if (!place) return;
+  placeUploadProgressEl.textContent = "Preparing files…";
 
-        placeUploadProgressEl.textContent = "Preparing files…";
+  for (const file of files) {
+    // IMAGES
+    if (file.type.startsWith("image/")) {
+      // create smaller thumbnail for local preview
+      const thumb = await extractImageThumbnail(file);
+      let driveFileId = null;
+      const mediaId = makeId("media");
 
-        for (const file of files) {
-          if (file.type.startsWith("image/")) {
-            const dataUrl = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = (ev) => resolve(ev.target.result);
-              reader.onerror = () => reject(reader.error);
-              reader.readAsDataURL(file);
-            });
-
-            const mediaId = makeId("media");
-            place.media.push({ id: mediaId, type: "image", src: dataUrl, driveFileId: null });
-          } else if (file.type.startsWith("video/")) {
-            const thumb = await extractVideoThumbnail(file);
-            const mediaId = makeId("media");
-            // Save chunked to IDB as before
-            await saveVideoFileChunked(mediaId, file, (done, total) => {
-              placeUploadProgressEl.textContent = `Uploading… ${((done/total)*100).toFixed(0)}%`;
-            });
-
-            place.media.push({ id: mediaId, type: "video", size: file.size, chunked: true, thumb, driveFileId: null });
-          }
+      if (googleAccessToken) {
+        try {
+          const mediaFolder = await ensureDriveMediaFolder();
+          const fname = `${currentStateName || "State"}-${place.name || "place"}-img-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+          // upload full image to Drive
+          driveFileId = await uploadFileToDrive(mediaFolder, file, fname, file.type || "image/jpeg");
+        } catch (err) {
+          console.warn("Drive upload failed for image, keeping only local thumb:", err);
         }
+      }
 
-        // persist
-        await saveStateToDb(stateData[currentStateName]);
-        placeUploadProgressEl.textContent = "";
-        renderPlaceMediaPreviews(place);
-        renderPlacesListForModal(currentStateName);
-        updateSidebar();
-        e.target.value = "";
+      // store only thumbnail locally (as src) + driveFileId
+      place.media.push({
+        id: mediaId,
+        type: "image",
+        src: thumb || null,   // used for previews
+        thumb: thumb || null,
+        driveFileId: driveFileId || null,
+        size: file.size || 0
       });
 
-      /* Save place note / deletion */
-      savePlaceBtn.addEventListener("click", async () => {
-        if (!currentStateName || !activePlaceId) return;
-        const place = (stateData[currentStateName].places || []).find(p => p.id === activePlaceId);
-        if (!place) return;
-        place.note = placeNoteTextarea.value || "";
-        await saveStateToDb(stateData[currentStateName]);
-        renderPlacesListForModal(currentStateName);
-        // close
-        activePlaceId = null;
-        placeEditor.style.display = "none";
-        updateSidebar();
-      });
+    // VIDEOS
+    } else if (file.type.startsWith("video/")) {
+      const thumb = await extractVideoThumbnail(file);
+      let driveFileId = null;
+      const mediaId = makeId("media");
 
-      /* Delete place */
+      if (googleAccessToken) {
+        try {
+          placeUploadProgressEl.textContent = "Uploading video to Drive…";
+          const mediaFolder = await ensureDriveMediaFolder();
+          const fname = `${currentStateName || "State"}-${place.name || "place"}-vid-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`;
+
+          driveFileId = await uploadVideoFileToDrive(
+            mediaFolder,
+            file,
+            fname,
+            (done, total) => {
+              placeUploadProgressEl.textContent = `Uploading to Drive… ${((done / total) * 100).toFixed(0)}%`;
+            }
+          );
+        } catch (err) {
+          console.warn("Drive upload failed for video. Falling back to local chunked storage:", err);
+        }
+      }
+
+      if (driveFileId) {
+        // ✅ Drive-only: no local chunked storage required
+        place.media.push({
+          id: mediaId,
+          type: "video",
+          size: file.size || 0,
+          chunked: false,
+          thumb: thumb || null,
+          driveFileId: driveFileId
+        });
+      } else {
+        // ❗ Fallback when user not signed in or upload fails: old local behavior
+        await saveVideoFileChunked(mediaId, file, (done, total) => {
+          placeUploadProgressEl.textContent = `Uploading locally… ${((done / total) * 100).toFixed(0)}%`;
+        });
+
+        place.media.push({
+          id: mediaId,
+          type: "video",
+          size: file.size || 0,
+          chunked: true,
+          thumb: thumb || null,
+          driveFileId: null
+        });
+      }
+    }
+  }
+
+  // persist
+  await saveStateToDb(stateData[currentStateName]);
+  placeUploadProgressEl.textContent = "";
+  renderPlaceMediaPreviews(place);
+  renderPlacesListForModal(currentStateName);
+  updateSidebar();
+  e.target.value = "";
+});
+
+
+            /* Delete place */
       deletePlaceBtn.addEventListener("click", async () => {
         if (!currentStateName || !activePlaceId) return;
         if (!confirm("Delete this place and its local media? This cannot be undone.")) return;
@@ -2975,41 +3062,47 @@ imageViewerBackdrop.addEventListener("click", (e) => {
       let currentVideoObjectUrl = null;
 
       async function playSingleVideo(item) {
-        if (!currentStateName) return;
+  if (!currentStateName) return;
 
-        if (currentVideoObjectUrl) {
-          URL.revokeObjectURL(currentVideoObjectUrl);
-          currentVideoObjectUrl = null;
-        }
+  if (currentVideoObjectUrl) {
+    URL.revokeObjectURL(currentVideoObjectUrl);
+    currentVideoObjectUrl = null;
+  }
 
-        videoPlayerEl.src = "";
-        videoPlayerSubEl.textContent = "Loading video…";
-        videoPlayerTitleEl.textContent = currentStateName;
+  videoPlayerEl.src = "";
+  videoPlayerSubEl.textContent = "Loading video…";
+  videoPlayerTitleEl.textContent = currentStateName;
 
-        videoPlayerBackdrop.classList.add("active");
+  videoPlayerBackdrop.classList.add("active");
 
-        try {
-          let url;
+  try {
+    let blob = null;
 
-          if (item.source === "new" && item.file) {
-            url = URL.createObjectURL(item.file);
-          } else if (item.source === "existing" && item.id) {
-            const blob = await loadVideoBlob(item.id);
-            if (!blob) throw new Error("No data for this video");
-            url = URL.createObjectURL(blob);
-          } else {
-            throw new Error("Unknown video source");
-          }
+    // 1) Prefer Drive if we have a fileId (Drive-first mode)
+    if (item.driveFileId) {
+      blob = await downloadDriveFileAsBlob_resumable(item.driveFileId);
+    }
+    // 2) Fallback to local chunked storage
+    else if (item.source === "existing" && item.id) {
+      blob = await loadVideoBlob(item.id);
+    }
+    // 3) Freshly uploaded but not yet saved differently
+    else if (item.source === "new" && item.file) {
+      blob = item.file;
+    }
 
-          currentVideoObjectUrl = url;
-          videoPlayerEl.src = url;
-          videoPlayerSubEl.textContent = "Playing selected video";
-          videoPlayerEl.play().catch(() => {});
-        } catch (err) {
-          console.error("Error playing video:", err);
-          videoPlayerSubEl.textContent = "Could not load this video.";
-        }
-      }
+    if (!blob) throw new Error("No data for this video");
+
+    const url = URL.createObjectURL(blob);
+    currentVideoObjectUrl = url;
+    videoPlayerEl.src = url;
+    videoPlayerSubEl.textContent = "Playing selected video";
+    videoPlayerEl.play().catch(() => {});
+  } catch (err) {
+    console.error("Error playing video:", err);
+    videoPlayerSubEl.textContent = "Could not load this video.";
+  }
+}
 
       function closeVideoPlayer() {
         if (currentVideoObjectUrl) {
@@ -3148,21 +3241,30 @@ imageViewerBackdrop.addEventListener("click", (e) => {
               src: m.src,
               id: m.id,
             });
-          } else if (m.type === "video" && m.id) {
-            try {
-              const blob = await loadVideoBlob(m.id);
-              if (!blob) continue;
-              const url = URL.createObjectURL(blob);
-              galleryMedia.push({
-                type: "video",
-                src: url,
-                id: m.id,
-                thumb: m.thumb || null,
-              });
-            } catch (err) {
-              console.error("Failed to load video:", err);
-            }
-          }
+          } else if (m.type === "video") {
+  try {
+    let blob = null;
+
+    if (m.driveFileId) {
+      blob = await downloadDriveFileAsBlob_resumable(m.driveFileId);
+    } else if (m.id) {
+      blob = await loadVideoBlob(m.id);
+    }
+
+    if (!blob) continue;
+    const url = URL.createObjectURL(blob);
+
+    galleryMedia.push({
+      type: "video",
+      src: url,
+      id: m.id,
+      thumb: m.thumb || null,
+    });
+  } catch (err) {
+    console.error("Failed to load video:", err);
+  }
+}
+
         }
 
         if (!galleryMedia.length) {
@@ -3360,4 +3462,3 @@ imageViewerBackdrop.addEventListener("click", (e) => {
     </script>
   </body>
 </html>
-
