@@ -1,0 +1,3362 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>iLvZn Explores</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Google Identity Services (for Google Login) -->
+    <script
+      src="https://accounts.google.com/gsi/client"
+      async
+      defer
+    ></script>
+
+    <!-- PWA meta + manifest -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#020617" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <style>
+      /* (your original CSS unchanged) */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        height: 100vh;
+        overflow: hidden;
+        background: #020617;
+        color: #e5e7eb;
+        display: flex;
+      }
+
+      .sidebar {
+        width: 280px;
+        max-width: 70vw;
+        background: radial-gradient(circle at top left, #111827, #020617);
+        border-right: 1px solid rgba(148, 163, 184, 0.35);
+        padding: 14px 14px 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .sidebar-header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .sidebar-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .sidebar-sub {
+        font-size: 0.8rem;
+        color: #9ca3af;
+      }
+
+      .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(22, 163, 74, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.6);
+        font-size: 0.8rem;
+      }
+
+      .stat-pill span:first-child {
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .filters {
+        display: flex;
+        gap: 6px;
+        margin-top: 2px;
+      }
+
+      .filter-btn {
+        flex: 1;
+        font-size: 0.75rem;
+        padding: 5px 6px;
+        border-radius: 999px;
+        border: 1px solid #374151;
+        background: rgba(15, 23, 42, 0.85);
+        color: #9ca3af;
+        cursor: pointer;
+      }
+
+      .filter-btn.active {
+        background: linear-gradient(to right, #4f46e5, #06b6d4);
+        color: #e5e7eb;
+        border-color: transparent;
+        font-weight: 600;
+      }
+
+      .visited-list-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow: hidden;
+      }
+
+      .visited-list-title {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .visited-list {
+        flex: 1;
+        margin-top: 4px;
+        padding-right: 4px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #4b5563 transparent;
+      }
+
+      .visited-item {
+        padding: 6px 8px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        margin-bottom: 4px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .visited-item span {
+        max-width: 160px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .badge {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        color: #9ca3af;
+      }
+
+      .badge-home {
+        border-color: rgba(250, 204, 21, 0.9);
+        color: #facc15;
+      }
+
+      .helper {
+        font-size: 0.72rem;
+        color: #6b7280;
+        margin-top: 2px;
+      }
+
+      #map {
+        flex: 1;
+        height: 100vh;
+        background: radial-gradient(circle at top, #0f172a, #020617);
+      }
+
+      /* Modal */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.75);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .modal-backdrop.active {
+        display: flex;
+      }
+
+      .modal {
+        background: #020617;
+        border-radius: 16px;
+        padding: 16px 18px;
+        width: 95%;
+        max-width: 460px;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+
+      .modal-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .home-badge {
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid rgba(250, 204, 21, 0.9);
+        color: #facc15;
+        margin-bottom: 8px;
+      }
+
+      .home-badge::before {
+        content: "🏠";
+      }
+
+      .close-btn {
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+
+      label {
+        font-size: 0.8rem;
+        color: #9ca3af;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .field {
+        margin-bottom: 10px;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 70px;
+        border-radius: 10px;
+        border: 1px solid #1f2937;
+        background: #020617;
+        color: #e5e7eb;
+        padding: 6px 8px;
+        resize: vertical;
+        font-size: 0.85rem;
+      }
+
+      .visited-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        margin-top: 4px;
+      }
+
+      .visited-row input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+
+      .btn-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 10px;
+        align-items: center;
+      }
+
+      .btn {
+        border-radius: 999px;
+        padding: 6px 14px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+
+      .btn-secondary {
+        background: transparent;
+        border-color: #4b5563;
+        color: #e5e7eb;
+      }
+
+      .btn-primary {
+        background: linear-gradient(to right, #22c55e, #16a34a);
+        color: #022c22;
+        font-weight: 600;
+      }
+
+      .btn-ghost {
+        background: rgba(15, 23, 42, 0.9);
+        border-color: #1f2937;
+        color: #e5e7eb;
+      }
+
+      .btn-small {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+      }
+
+      .media-section-title {
+        font-size: 0.78rem;
+        color: #9ca3af;
+        margin-top: 2px;
+        margin-bottom: 3px;
+      }
+
+      .media-section {
+        margin-bottom: 8px;
+      }
+
+      .media-preview {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+        max-height: 90px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #4b5563 transparent;
+      }
+
+      .media-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 1px solid #1f2937;
+        cursor: pointer;
+      }
+
+      .video-tile {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        border: 1px solid #1f2937;
+        background: radial-gradient(circle at top, #111827, #020617);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+      }
+
+      .video-tile img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .video-tile-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 2px 4px;
+        font-size: 0.6rem;
+        color: #e5e7eb;
+      }
+
+      .video-tile-play {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+      }
+
+      .helper-info {
+        font-size: 0.7rem;
+        color: #6b7280;
+        margin-top: 2px;
+      }
+
+      .progress-text {
+        font-size: 0.7rem;
+        color: #9ca3af;
+        margin-top: 4px;
+      }
+
+      /* Gallery / Slideshow */
+      .gallery-backdrop {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+          circle at top,
+          rgba(15, 23, 42, 0.96),
+          rgba(3, 7, 18, 0.98)
+        );
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1100;
+        padding: 14px;
+      }
+
+      .gallery-backdrop.active {
+        display: flex;
+      }
+
+      .gallery {
+        width: 100%;
+        max-width: 900px;
+        height: 100%;
+        max-height: 520px;
+        border-radius: 18px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: radial-gradient(circle at top, #020617, #020617);
+        padding: 12px 14px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+      }
+
+      .gallery-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+
+      .gallery-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .gallery-title-main {
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .gallery-title-sub {
+        font-size: 0.75rem;
+        color: #9ca3af;
+      }
+
+      .gallery-close-btn {
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        font-size: 1.3rem;
+        cursor: pointer;
+      }
+
+      .gallery-main {
+        flex: 1;
+        border-radius: 14px;
+        border: 1px solid #111827;
+        background: radial-gradient(circle at center, #020617, #020617);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .gallery-main img,
+      .gallery-main video {
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 12px;
+        object-fit: contain;
+      }
+
+      .gallery-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 4px;
+        font-size: 0.8rem;
+      }
+
+      .gallery-nav {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .gallery-btn {
+        border-radius: 999px;
+        padding: 5px 10px;
+        border: 1px solid #4b5563;
+        background: rgba(15, 23, 42, 0.95);
+        color: #e5e7eb;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+
+      .gallery-counter {
+        font-size: 0.78rem;
+        color: #d1d5db;
+      }
+
+      .gallery-thumb-strip {
+        display: flex;
+        gap: 4px;
+        margin-top: 4px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: thin;
+        scrollbar-color: #4b5563 transparent;
+      }
+
+      .gallery-thumb {
+        flex: 0 0 auto;
+        width: 52px;
+        height: 52px;
+        border-radius: 11px;
+        overflow: hidden;
+        border: 1px solid #111827;
+        opacity: 0.6;
+        cursor: pointer;
+      }
+
+      .gallery-thumb.active {
+        opacity: 1;
+        border-color: #22c55e;
+      }
+
+      .gallery-thumb img,
+      .gallery-thumb video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .gallery-loading {
+        font-size: 0.85rem;
+        color: #9ca3af;
+      }
+
+      /* Single video player overlay */
+      .video-player-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.85);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1200;
+        padding: 16px;
+      }
+
+      .video-player-backdrop.active {
+        display: flex;
+      }
+
+      .video-player {
+        width: 100%;
+        max-width: 720px;
+        background: #020617;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        box-shadow: 0 22px 50px rgba(0, 0, 0, 0.75);
+        padding: 10px 12px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .video-player-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #e5e7eb;
+      }
+
+      .video-player-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .video-player-main {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #111827;
+        background: #020617;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 220px;
+      }
+
+      .video-player-main video {
+        width: 100%;
+        max-height: 420px;
+        border-radius: 8px;
+      }
+
+      .video-player-close {
+        background: transparent;
+        border: none;
+        color: #9ca3af;
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+.image-viewer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1175;
+  padding: 16px;
+}
+
+.image-viewer-backdrop.active {
+  display: flex;
+}
+
+.image-viewer {
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  background: #020617;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.75);
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.image-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+
+.image-viewer-main {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #111827;
+  background: #020617;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 220px;
+}
+
+.image-viewer-main img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.image-viewer-close {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+
+      @media (max-width: 720px) {
+        .sidebar {
+          width: 220px;
+        }
+
+        .visited-item span {
+          max-width: 120px;
+        }
+
+        .gallery {
+          max-height: 480px;
+        }
+      }
+/* ===== collapsible sidebar overrides ===== */
+#sidebar, .sidebar {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: var(--sidebar-width, 280px) !important;
+  max-width: 90vw !important;
+  box-sizing: border-box !important;
+  transform: translateX(0) !important;
+  transition: transform 240ms ease, visibility 240ms ease, opacity 240ms ease !important;
+  z-index: 1040 !important;
+  overflow: hidden !important;
+  border-radius: 0 12px 12px 0 !important;
+  background-clip: padding-box;
+}
+
+/* Closed state slides fully off-screen left */
+#sidebar.closed, .sidebar.closed {
+  transform: translateX(calc(-1 * var(--sidebar-width, 280px))) !important;
+}
+
+/* Ensure no sidebar content is visible or interactive when closed */
+#sidebar.closed * {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Show the open button only when closed */
+#openSidebarBtn { display: none; }
+#sidebar.closed + #openSidebarBtn,
+#openSidebarBtn[aria-hidden="false"] {
+  display: block !important;
+}
+
+/* small style for header close button */
+.sidebar-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 6px;
+  line-height: 1;
+}
+.sidebar-header {
+  position: relative;
+  padding-right: 32px;      /* ensures text doesn't overlap the X */
+}
+
+.sidebar-close {
+  position: absolute !important;
+  top: 0;
+  right: 0;
+  padding: 4px 6px;
+  font-size: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+}
+
+
+    </style>
+  </head>
+
+  <body>
+    <aside id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div>
+      <div class="sidebar-title">iLvZn Explores</div>
+      <div class="sidebar-sub" style="margin-top:4px;">
+        Click states on the map to mark them as visited, add notes, photos &amp;
+        videos.
+      </div>
+    </div>
+
+    <!-- Close button inside the header (collapses sidebar) -->
+    <button
+      id="closeSidebarBtn"
+      class="sidebar-close"
+      aria-label="Close sidebar"
+    >✕</button>
+  </div>
+	
+      <!-- Google account box -->
+      <div
+        id="accountBox"
+        style="
+          margin-top: 6px;
+          margin-bottom: 6px;
+          font-size: 0.75rem;
+          color: #9ca3af;
+        "
+      >
+        <button
+          id="googleSignInBtn"
+          class="btn btn-ghost btn-small"
+          style="margin-bottom: 4px"
+        >
+          Sign in with Google to sync
+        </button>
+        <div id="accountStatus">Not signed in</div>
+      </div>
+
+      <div class="stat-pill">
+        <span id="visitedCount">0</span>
+        <span>states visited</span>
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="visited">Visited</button>
+        <button class="filter-btn" data-filter="notVisited">Not visited</button>
+      </div>
+
+      <div class="visited-list-container">
+        <div class="visited-list-title">
+          <span>Visited states</span>
+          <span
+            id="visitedListCount"
+            style="font-size: 0.75rem; color: #9ca3af"
+            >0</span
+          >
+        </div>
+
+        <div id="visitedList" class="visited-list"></div>
+
+        <div class="helper">
+          Tip: Photos & videos are now stored per-place inside a state. Click a place in the state modal to edit/view its media.
+        </div>
+
+        <!-- NEW: Sync controls -->
+        <div class="sync-controls" style="margin-top: 8px; font-size: 0.75rem">
+          <div style="display: flex; gap: 6px; margin-bottom: 6px">
+            <button
+              id="backupToDriveBtn"
+              class="btn btn-ghost btn-small"
+              disabled
+            >
+              Backup to Drive
+            </button>
+            <button
+              id="restoreFromDriveBtn"
+              class="btn btn-ghost btn-small"
+              disabled
+            >
+              Restore from Drive
+            </button>
+          </div>
+          <div id="syncStatus" style="margin-top: 4px; color: #6b7280">
+            Sign in to enable sync
+          </div>
+        </div>
+
+              </div>
+    </aside>
+    <button id="openSidebarBtn" class="sidebar-open" aria-label="Open sidebar" aria-hidden="true" style="display:none; position:fixed; left:12px; top:12px; z-index:1060; width:44px; height:44px; border-radius:10px; border:0; box-shadow:0 6px 18px rgba(0,0,0,0.12); background:#0b1220; color:#fff; font-size:18px; cursor:pointer;">☰</button>
+
+    <div id="map"></div>
+
+    <!-- State Modal -->
+    <div id="stateModalBackdrop" class="modal-backdrop">
+      <div class="modal">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title" id="modalStateName">State</div>
+          </div>
+          <button class="close-btn" id="modalCloseBtn">&times;</button>
+        </div>
+
+        <div id="homeBadge" class="home-badge" style="display: none">
+          Home state
+        </div>
+
+        <div class="visited-row">
+          <input type="checkbox" id="visitedCheckbox" />
+          <span>Mark as visited</span>
+        </div>
+        <!-- PLACES SECTION -->
+        <div class="field">
+          <label for="placesList">Places in this state</label>
+
+          <div id="placesList" style="margin-bottom:8px;"></div>
+
+          <div style="display:flex; gap:6px;">
+            <input
+              id="newPlaceInput"
+              placeholder="Add a place (e.g., Mathura, Vrindavan)"
+              style="
+                flex:1;
+                padding:6px 8px;
+                border-radius:8px;
+                border:1px solid #374151;
+                background:#020617;
+                color:#e5e7eb;
+              "
+            />
+            <button id="addPlaceBtn" class="btn btn-ghost btn-small">Add</button>
+          </div>
+
+          <div class="helper-info">
+            Add multiple places inside this state. Each place will have its
+            <strong>own photos/videos & notes</strong>.
+          </div>
+        </div>
+        <!-- END PLACES SECTION -->
+
+        <!-- PLACE EDITOR (hidden by default) -->
+        <div id="placeEditor" style="display:none; margin-bottom:10px; border-top:1px dashed #1f2937; padding-top:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
+            <div style="font-weight:600;" id="placeEditorName">Place</div>
+            <div style="display:flex; gap:6px;">
+              <button id="closePlaceEditorBtn" class="btn btn-ghost btn-small">Close</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="placeNoteTextarea">Place notes</label>
+            <textarea id="placeNoteTextarea" placeholder="Memories at this place..."></textarea>
+          </div>
+
+          <div class="field">
+            <label for="placeMediaInput">Add photos & videos to this place</label>
+            <input type="file" id="placeMediaInput" accept="image/*,video/*" multiple />
+            <div id="placeUploadProgress" class="progress-text"></div>
+          </div>
+
+          <div class="media-section">
+            <div class="media-section-title">Place Photos</div>
+            <div id="placePhotosPreview" class="media-preview"></div>
+          </div>
+
+          <div class="media-section">
+            <div class="media-section-title">Place Videos</div>
+            <div id="placeVideosPreview" class="media-preview"></div>
+          </div>
+
+          <div style="display:flex; gap:6px; justify-content:flex-end;">
+            <button id="deletePlaceBtn" class="btn btn-secondary btn-small" style="background:transparent;">Delete place</button>
+            <button id="savePlaceBtn" class="btn btn-primary btn-small">Save place</button>
+          </div>
+        </div>
+        <!-- END PLACE EDITOR -->
+
+        <div class="field">
+          <label for="noteTextarea">Notes / memories (state-level)</label>
+          <textarea
+            id="noteTextarea"
+            placeholder="Example: 2024 trip with friends, favourite place & food..."
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label for="mediaInput">Add photos & videos (state-level — will be moved into 'General' place)</label>
+          <input
+            type="file"
+            id="mediaInput"
+            accept="image/*,video/*"
+            multiple
+          />
+          <div class="helper-info">
+            Photos are stored as images; videos are saved in small chunks with
+            thumbnails. Very large videos can still hit browser limits. Any files added here will be saved into a "General" place for this state.
+          </div>
+          <div id="uploadProgress" class="progress-text"></div>
+        </div>
+
+        <div class="media-section">
+          <div class="media-section-title">Photos (state-level preview)</div>
+          <div id="photosPreview" class="media-preview"></div>
+        </div>
+
+        <div class="media-section">
+          <div class="media-section-title">Videos (state-level preview)</div>
+          <div id="videosPreview" class="media-preview"></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost btn-small" id="openGalleryBtn">
+            View slideshow (place)
+          </button>
+          <div style="display: flex; gap: 6px">
+            <button class="btn btn-secondary btn-small" id="clearStateBtn">
+              Clear
+            </button>
+            <button class="btn btn-primary btn-small" id="saveStateBtn">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gallery / Slideshow -->
+    <div id="galleryBackdrop" class="gallery-backdrop">
+      <div class="gallery">
+        <div class="gallery-header">
+          <div class="gallery-title">
+            <span class="gallery-title-main" id="galleryStateTitle">State / Place</span>
+            <span class="gallery-title-sub" id="gallerySubtitle"
+              >Slideshow of photos & videos</span
+            >
+          </div>
+          <button class="gallery-close-btn" id="galleryCloseBtn">
+            &times;
+          </button>
+        </div>
+
+        <div class="gallery-main" id="galleryMain">
+          <div class="gallery-loading" id="galleryLoading">
+            Preparing slideshow…
+          </div>
+        </div>
+
+        <div class="gallery-controls">
+          <div class="gallery-nav">
+            <button class="gallery-btn" id="prevMediaBtn">⟨ Prev</button>
+            <button class="gallery-btn" id="nextMediaBtn">Next ⟩</button>
+          </div>
+          <div class="gallery-counter" id="galleryCounter">0 / 0</div>
+        </div>
+
+        <div class="gallery-thumb-strip" id="galleryThumbStrip"></div>
+      </div>
+    </div>
+
+    <!-- Single Video Player -->
+    <div id="videoPlayerBackdrop" class="video-player-backdrop">
+      <div class="video-player">
+        <div class="video-player-header">
+          <div class="video-player-title">
+            <span id="videoPlayerTitle">Video</span>
+            <span
+              id="videoPlayerSub"
+              style="font-size: 0.75rem; color: #9ca3af"
+              >Playing selected video</span
+            >
+          </div>
+          <button class="video-player-close" id="videoPlayerCloseBtn">
+            &times;
+          </button>
+        </div>
+        <div class="video-player-main">
+          <video id="videoPlayerElement" controls playsinline></video>
+        </div>
+      </div>
+    </div>
+<!-- Image Viewer -->
+<div id="imageViewerBackdrop" class="image-viewer-backdrop">
+  <div class="image-viewer">
+    <div class="image-viewer-header">
+      <span id="imageViewerTitle">Photo</span>
+      <button class="image-viewer-close" id="imageViewerCloseBtn">&times;</button>
+    </div>
+    <div class="image-viewer-main">
+      <img id="imageViewerImg" alt="Photo preview" />
+    </div>
+  </div>
+</div>
+
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <script>
+      // --- CONFIG ---
+      const INDIA_GEOJSON_URL =
+        "https://gist.githubusercontent.com/jbrobst/56c13bbbf9d97d187fea01ca62ea5112/raw/e388c4cae20aa53cb5090210a42ebb9b765c0a36/india_states.geojson";
+      const HOME_STATE = "Odisha";
+
+      const DB_NAME = "india_travel_tracker_chunked_vthumb";
+      const DB_VERSION = 2;
+      const STORE_STATES = "states";
+      const STORE_CHUNKS = "videoChunks";
+      const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB
+
+      // --- Google OAuth / Identity (Sign-in + Drive) ---
+      const GOOGLE_CLIENT_ID =
+        "789561466750-gtni93o3npjf6bm1tpnrvebaaavpf6be.apps.googleusercontent.com";
+      const DRIVE_SCOPES = "https://www.googleapis.com/auth/drive"; // broader scope (required for permissions API)
+
+      let googleAccessToken = null;
+      let googleUserEmail = null;
+      let googleTokenClient = null;
+
+      // --- Google Drive helpers ---
+      let driveFolderId = null; // main folder: "iLvZn Explores Map"
+      let driveMediaFolderId = null; // subfolder: "media"
+
+      /**
+       * Call Google Drive API (v3) with the current access token.
+       * path should start with "/" e.g. "/files?q=..."
+       */
+      async function driveApiRequest(path, options = {}) {
+        if (!googleAccessToken) {
+          throw new Error("Not signed in with Google");
+        }
+
+        const res = await fetch("https://www.googleapis.com/drive/v3" + path, {
+          ...options,
+          headers: {
+            Authorization: "Bearer " + googleAccessToken,
+            ...(options.headers || {}),
+          },
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Drive API error:", res.status, text);
+          throw new Error("Drive API error " + res.status);
+        }
+        return res.json();
+      }
+
+      /**
+       * Ensure main folder "iLvZn Explores Map" exists in Drive.
+       * Returns its folder ID.
+       */
+      async function ensureDriveFolder() {
+        if (!googleAccessToken) throw new Error("Not signed in");
+        if (driveFolderId) return driveFolderId;
+
+        const q = encodeURIComponent(
+          "name = 'iLvZn Explores Map' and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
+        );
+
+        const data = await driveApiRequest(
+          "/files?q=" + q + "&fields=files(id,name,modifiedTime)"
+        );
+
+        if (data.files && data.files.length > 0) {
+          // pick most recent folder if multiple
+          data.files.sort(
+            (a, b) =>
+              new Date(b.modifiedTime || 0) - new Date(a.modifiedTime || 0)
+          );
+          driveFolderId = data.files[0].id;
+          return driveFolderId;
+        }
+
+        const metadata = {
+          name: "iLvZn Explores Map",
+          mimeType: "application/vnd.google-apps.folder",
+        };
+
+        const res = await fetch(
+          "https://www.googleapis.com/drive/v3/files?fields=id",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + googleAccessToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(metadata),
+          }
+        );
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Create folder error:", text);
+          throw new Error("Failed to create Drive folder");
+        }
+
+        const json = await res.json();
+        driveFolderId = json.id;
+        return driveFolderId;
+      }
+
+      /**
+       * Ensure "media" subfolder exists inside main folder.
+       */
+      async function ensureDriveMediaFolder() {
+        if (!googleAccessToken) throw new Error("Not signed in");
+        if (driveMediaFolderId) return driveMediaFolderId;
+
+        const parentId = await ensureDriveFolder();
+        const q = encodeURIComponent(
+          "name = 'media' and mimeType = 'application/vnd.google-apps.folder' and trashed = false and '" +
+            parentId +
+            "' in parents"
+        );
+
+        const data = await driveApiRequest(
+          "/files?q=" + q + "&fields=files(id,name,modifiedTime)"
+        );
+
+        if (data.files && data.files.length > 0) {
+          // pick most recent
+          data.files.sort(
+            (a, b) =>
+              new Date(b.modifiedTime || 0) - new Date(a.modifiedTime || 0)
+          );
+          driveMediaFolderId = data.files[0].id;
+          return driveMediaFolderId;
+        }
+
+        const metadata = {
+          name: "media",
+          mimeType: "application/vnd.google-apps.folder",
+          parents: [parentId],
+        };
+
+        const res = await fetch(
+          "https://www.googleapis.com/drive/v3/files?fields=id",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + googleAccessToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(metadata),
+          }
+        );
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Create media folder error:", text);
+          throw new Error("Failed to create media folder");
+        }
+
+        const json = await res.json();
+        driveMediaFolderId = json.id;
+        return driveMediaFolderId;
+      }
+
+      /**
+       * Convert a data URL (base64 image) to a Blob.
+       */
+      function dataUrlToBlob(dataUrl) {
+        const parts = dataUrl.split(",");
+        const header = parts[0];
+        const data = parts[1];
+
+        const mimeMatch = header.match(/data:(.*?);base64/);
+        const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+
+        const binary = atob(data);
+        const len = binary.length;
+        const arr = new Uint8Array(len);
+
+        for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
+
+        return new Blob([arr], { type: mimeType });
+      }
+
+      /**
+       * Upload a Blob to Drive in a parent folder.
+       * Returns fileId.
+       */
+      async function uploadFileToDrive(parentFolderId, blob, name, mimeType) {
+        if (!googleAccessToken) throw new Error("Not signed in with Google");
+
+        const metadata = {
+          name,
+          mimeType,
+          parents: [parentFolderId],
+        };
+
+        const boundary =
+          "ilvznDriveBoundary" + Math.random().toString(36).slice(2);
+        const delimiter = "--" + boundary;
+        const closeDelim = "--" + boundary + "--";
+
+        const reader = new FileReader();
+        const fileContent = await new Promise((resolve, reject) => {
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsArrayBuffer(blob);
+        });
+
+        const header =
+          delimiter +
+          "\r\n" +
+          "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+          JSON.stringify(metadata) +
+          "\r\n" +
+          delimiter +
+          "\r\n" +
+          (mimeType ? "Content-Type: " + mimeType + "\r\n\r\n" : "\r\n");
+
+        const headerBytes = new TextEncoder().encode(header);
+        const tailBytes = new TextEncoder().encode("\r\n" + closeDelim);
+
+        const totalLen =
+          headerBytes.byteLength + fileContent.byteLength + tailBytes.byteLength;
+        const body = new Uint8Array(totalLen);
+
+        body.set(headerBytes, 0);
+        body.set(new Uint8Array(fileContent), headerBytes.byteLength);
+        body.set(tailBytes, headerBytes.byteLength + fileContent.byteLength);
+
+        const res = await fetch(
+          "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + googleAccessToken,
+              "Content-Type": "multipart/related; boundary=" + boundary,
+            },
+            body,
+          }
+        );
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Upload file error:", text);
+          throw new Error("Failed to upload file to Drive");
+        }
+
+        const json = await res.json();
+        return json.id;
+      }
+
+      /**
+       * Download a file from Drive as Blob.
+       */
+      // safer download: supportsAllDrives + verify response before returning blob
+async function downloadDriveFileAsBlob(fileId) {
+  if (!googleAccessToken) throw new Error("Not signed in");
+
+  // include supportsAllDrives for shared-drive/other-account files
+  const url = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(fileId) + "?alt=media&supportsAllDrives=true";
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: "Bearer " + googleAccessToken,
+    },
+  });
+
+  // If drive returns error HTML, try to capture it and surface helpful debug
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Download file error:", res.status, text);
+    throw new Error("Failed to download file from Drive: " + res.status);
+  }
+
+  // quick verification: content-type and content-length
+  const contentType = res.headers.get("Content-Type") || "";
+  const contentLength = parseInt(res.headers.get("Content-Length") || "0", 10);
+
+  const blob = await res.blob();
+
+  // If response looks suspicious (tiny or wrong MIME), fail early
+  if (blob.size < 1000) {
+    // small file — likely an HTML error page or truncated upload
+    console.error("Downloaded blob is very small; possible error page or truncated upload.", { fileId, contentType, contentLength, size: blob.size });
+    throw new Error("Downloaded file looks invalid (too small) — check upload/permissions.");
+  }
+
+  // optional: if contentType doesn't look like video/* and not image/*
+  if (!contentType.startsWith("video/") && !contentType.startsWith("image/")) {
+    console.warn("Downloaded file Content-Type is", contentType, " — might still be valid, but check it.");
+  }
+
+  return blob;
+}
+
+
+      let db = null;
+
+      // --- IndexedDB helpers ---
+      function openDb() {
+        return new Promise((resolve, reject) => {
+          if (db) return resolve(db);
+
+          const req = indexedDB.open(DB_NAME, DB_VERSION);
+
+          req.onupgradeneeded = (event) => {
+            const upgradeDb = event.target.result;
+
+            if (!upgradeDb.objectStoreNames.contains(STORE_STATES)) {
+              upgradeDb.createObjectStore(STORE_STATES, { keyPath: "name" });
+            }
+
+            if (!upgradeDb.objectStoreNames.contains(STORE_CHUNKS)) {
+              upgradeDb.createObjectStore(STORE_CHUNKS, { keyPath: "key" });
+            }
+          };
+
+          req.onsuccess = (event) => {
+            db = event.target.result;
+            resolve(db);
+          };
+
+          req.onerror = () => reject(req.error);
+        });
+      }
+
+      function getAllStatesFromDb() {
+        return openDb().then((database) => {
+          return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_STATES, "readonly");
+            const store = tx.objectStore(STORE_STATES);
+            const req = store.getAll();
+
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => reject(req.error);
+          });
+        });
+      }
+
+      function saveStateToDb(record) {
+        return openDb().then((database) => {
+          return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_STATES, "readwrite");
+            const store = tx.objectStore(STORE_STATES);
+            const req = store.put(record);
+
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+          });
+        });
+      }
+
+      function deleteStateFromDb(name) {
+        return openDb().then((database) => {
+          return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_STATES, "readwrite");
+            const store = tx.objectStore(STORE_STATES);
+            const req = store.delete(name);
+
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+          });
+        });
+      }
+
+      function saveVideoChunk(mediaId, index, arrayBuffer) {
+        return openDb().then((database) => {
+          return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_CHUNKS, "readwrite");
+            const store = tx.objectStore(STORE_CHUNKS);
+            const key = mediaId + "::" + index;
+            const record = { key, mediaId, index, data: arrayBuffer };
+            const req = store.put(record);
+
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+          });
+        });
+      }
+
+      function deleteVideoChunks(mediaId) {
+        return openDb().then((database) => {
+          return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_CHUNKS, "readwrite");
+            const store = tx.objectStore(STORE_CHUNKS);
+
+            const lower = mediaId + "::";
+            const upper = mediaId + "::\uffff";
+            const range = IDBKeyRange.bound(lower, upper);
+
+            const req = store.openCursor(range);
+
+            req.onsuccess = (event) => {
+              const cursor = event.target.result;
+              if (cursor) {
+                cursor.delete();
+                cursor.continue();
+              } else {
+                resolve();
+              }
+            };
+
+            req.onerror = () => reject(req.error);
+          });
+        });
+      }
+
+      function loadVideoChunks(mediaId) {
+        return openDb().then((database) => {
+          return new Promise((resolve, reject) => {
+            const tx = database.transaction(STORE_CHUNKS, "readonly");
+            const store = tx.objectStore(STORE_CHUNKS);
+
+            const lower = mediaId + "::";
+            const upper = mediaId + "::\uffff";
+            const range = IDBKeyRange.bound(lower, upper);
+
+            const chunks = [];
+            const req = store.openCursor(range);
+
+            req.onsuccess = (event) => {
+              const cursor = event.target.result;
+              if (cursor) {
+                chunks.push(cursor.value);
+                cursor.continue();
+              } else {
+                chunks.sort((a, b) => a.index - b.index);
+                const buffers = chunks.map((c) => c.data);
+                resolve(buffers);
+              }
+            };
+
+            req.onerror = () => reject(req.error);
+          });
+        });
+      }
+
+      async function loadVideoBlob(mediaId) {
+        const buffers = await loadVideoChunks(mediaId);
+        if (!buffers.length) return null;
+        const blob = new Blob(buffers, { type: "video/mp4" });
+        return blob;
+      }
+// Resumable / robust downloader for Drive files.
+// Tries a normal fetch first, then falls back to range-chunk download if the response looks wrong.
+// Returns a Blob on success (or throws).
+async function downloadDriveFileAsBlob_resumable(fileId) {
+  if (!googleAccessToken) throw new Error("Not signed in");
+
+  const baseUrl =
+    "https://www.googleapis.com/drive/v3/files/" +
+    encodeURIComponent(fileId) +
+    "?alt=media&supportsAllDrives=true";
+
+  // 1) Try a normal fetch with retries
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetch(baseUrl, {
+        headers: { Authorization: "Bearer " + googleAccessToken },
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const blob = await res.blob();
+
+      // basic sanity: must be larger than small HTML error page
+      if (blob.size > 2048) return blob;
+
+      // if too small, fall through to ranged download attempt
+      console.warn("Downloaded blob small — will try ranged download", { fileId, size: blob.size });
+    } catch (err) {
+      console.warn("Attempt", attempt, "normal download failed for", fileId, err);
+      // small delay before retry
+      await new Promise((r) => setTimeout(r, 400 * attempt));
+    }
+  }
+
+  // 2) Fallback: ranged-chunk download and concat (useful for large files / flaky edges)
+  // We'll request in CHUNK_SIZE ranges and assemble into an array of ArrayBuffers.
+  const CHUNK = typeof CHUNK_SIZE === "number" ? CHUNK_SIZE : 4 * 1024 * 1024;
+  let chunks = [];
+  let offset = 0;
+  let totalSize = null;
+  const maxAttemptsPerChunk = 2;
+
+  // Probe with a small range request to try to learn total size (Content-Range)
+  try {
+    const probeRes = await fetch(baseUrl, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + googleAccessToken,
+        Range: "bytes=0-0",
+      },
+    });
+    if (probeRes.ok) {
+      const cr = probeRes.headers.get("Content-Range") || "";
+      const match = cr.match(/\/(\d+)$/);
+      if (match) totalSize = parseInt(match[1], 10);
+    }
+  } catch (e) {
+    console.warn("Probe request failed", e);
+  }
+
+  while (totalSize === null || offset < totalSize) {
+    const start = offset;
+    const end = offset + CHUNK - 1;
+    let attemptOK = false;
+
+    for (let attempt = 1; attempt <= maxAttemptsPerChunk; attempt++) {
+      try {
+        const r = await fetch(baseUrl, {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + googleAccessToken,
+            Range: `bytes=${start}-${end}`,
+          },
+        });
+
+        if (r.status === 206 || r.status === 200) {
+          const ab = await r.arrayBuffer();
+          chunks.push(ab);
+
+          const cr = r.headers.get("Content-Range") || "";
+          const match = cr.match(/\/(\d+)$/);
+          if (match) totalSize = parseInt(match[1], 10);
+
+          offset += ab.byteLength;
+          attemptOK = true;
+          break;
+        } else if (r.status === 416) {
+          // Range not satisfiable => we've reached the end
+          attemptOK = true;
+          offset = totalSize || offset;
+          break;
+        } else {
+          throw new Error("Unexpected status " + r.status);
+        }
+      } catch (err) {
+        console.warn(`Chunk download attempt ${attempt} failed for ${fileId} at ${start}-${end}`, err);
+        await new Promise((r) => setTimeout(r, 300 * attempt));
+      }
+    }
+
+    if (!attemptOK) {
+      throw new Error("Failed to download chunk for file " + fileId + " at offset " + offset);
+    }
+
+    // If totalSize unknown and last chunk smaller than CHUNK, assume end reached
+    if (totalSize === null && chunks.length && chunks[chunks.length - 1].byteLength < CHUNK) {
+      totalSize = chunks.reduce((s, c) => s + c.byteLength, 0);
+      break;
+    }
+
+    if (totalSize !== null && offset >= totalSize) break;
+  }
+
+  const blob = new Blob(chunks, { type: "video/mp4" });
+  if (blob.size < 1024) throw new Error("Downloaded blob looks invalid after ranged download.");
+  return blob;
+}
+
+
+      async function saveVideoFileChunked(mediaId, file, progressCallback) {
+        const totalSize = file.size;
+        let offset = 0;
+        let index = 0;
+
+        while (offset < totalSize) {
+          const slice = file.slice(offset, offset + CHUNK_SIZE);
+          const arrayBuffer = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsArrayBuffer(slice);
+          });
+
+          await saveVideoChunk(mediaId, index, arrayBuffer);
+
+          offset += CHUNK_SIZE;
+          index++;
+
+          if (progressCallback) progressCallback(Math.min(offset, totalSize), totalSize);
+
+          await new Promise((r) => setTimeout(r, 0));
+        }
+      }
+
+      // --- Extract first-frame video thumbnail ---
+      function extractVideoThumbnail(file) {
+        return new Promise((resolve, reject) => {
+          try {
+            const video = document.createElement("video");
+            const url = URL.createObjectURL(file);
+
+            video.src = url;
+            video.muted = true;
+            video.playsInline = true;
+
+            video.addEventListener("loadeddata", () => {
+              try {
+                const canvas = document.createElement("canvas");
+                const w = video.videoWidth || 320;
+                const h = video.videoHeight || 180;
+
+                canvas.width = w;
+                canvas.height = h;
+
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(video, 0, 0, w, h);
+
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+                URL.revokeObjectURL(url);
+                resolve(dataUrl);
+              } catch (e) {
+                URL.revokeObjectURL(url);
+                resolve(null);
+              }
+            });
+
+            video.onerror = () => {
+              URL.revokeObjectURL(url);
+              resolve(null);
+            };
+          } catch (e) {
+            resolve(null);
+          }
+        });
+      }
+
+      // --- In-memory state ---
+      let stateData = {}; // name -> { name, visited, note, places:[], isHome }
+      let stateLayers = {}; // name -> Leaflet layer
+
+      // --- Map ---
+      const map = L.map("map", {
+        zoomControl: true,
+        attributionControl: false,
+      }).setView([22.5, 80], 4.5);
+
+      L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
+        {
+          maxZoom: 7,
+          minZoom: 3,
+        }
+      ).addTo(map);
+
+      function baseStyle() {
+        return {
+          color: "#4b5563",
+          weight: 1,
+          fillColor: "#020617",
+          fillOpacity: 0.2,
+        };
+      }
+
+      function visitedStyle() {
+        return {
+          color: "#f97316",
+          weight: 1.2,
+          fillColor: "#22c55e",
+          fillOpacity: 0.8,
+        };
+      }
+
+      function homeStyle() {
+        return {
+          color: "#facc15",
+          weight: 1.6,
+          fillColor: "#38bdf8",
+          fillOpacity: 0.9,
+        };
+      }
+
+      function applyStyleForState(name) {
+        const layer = stateLayers[name];
+        if (!layer) return;
+
+        const entry = stateData[name];
+        const isVisited = entry && entry.visited;
+
+        if (name === HOME_STATE) {
+          layer.setStyle(homeStyle());
+        } else if (isVisited) {
+          layer.setStyle(visitedStyle());
+        } else {
+          layer.setStyle(baseStyle());
+        }
+      }
+
+      // Helpers to create unique ids
+      function makeId(prefix) {
+        return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
+      }
+
+      async function loadStateDataFromDb() {
+        try {
+          const records = await getAllStatesFromDb();
+          stateData = {};
+
+          records.forEach((rec) => {
+            if (!rec || !rec.name) return;
+            // migrate older shape (rec.media) -> rec.places with General place
+            if (!Array.isArray(rec.places)) rec.places = [];
+            if (Array.isArray(rec.media) && rec.media.length > 0) {
+              const general = {
+                id: makeId("place"),
+                name: "General",
+                note: "",
+                media: rec.media.slice(),
+              };
+              if (rec.places.length === 0) rec.places = [general];
+              else rec.places.unshift(general);
+              rec.media = [];
+              try {
+                // persist migrated record
+                saveStateToDb(rec).catch(() => {});
+              } catch (e) {
+                console.warn("Migration persist failed", e);
+              }
+            }
+            // normalize shape
+            if (!Array.isArray(rec.places)) rec.places = [];
+            stateData[rec.name] = rec;
+          });
+        } catch (err) {
+          console.error("Failed to load states:", err);
+          stateData = {};
+        }
+
+        if (!stateData[HOME_STATE]) {
+          stateData[HOME_STATE] = {
+            name: HOME_STATE,
+            visited: true,
+            note: "",
+            places: [],
+            isHome: true,
+          };
+          await saveStateToDb(stateData[HOME_STATE]);
+        } else {
+          stateData[HOME_STATE].visited = true;
+          stateData[HOME_STATE].isHome = true;
+          if (!Array.isArray(stateData[HOME_STATE].places)) {
+            stateData[HOME_STATE].places = [];
+          }
+          await saveStateToDb(stateData[HOME_STATE]);
+        }
+      }
+
+      // --- Sidebar ---
+      const visitedCountEl = document.getElementById("visitedCount");
+      const visitedListEl = document.getElementById("visitedList");
+      const visitedListCountEl = document.getElementById("visitedListCount");
+      const filterBtns = document.querySelectorAll(".filter-btn");
+
+      // Google UI elements
+      const googleSignInBtn = document.getElementById("googleSignInBtn");
+      const accountStatusEl = document.getElementById("accountStatus");
+
+      // Sync UI elements (NEW)
+      const backupToDriveBtn = document.getElementById("backupToDriveBtn");
+      const restoreFromDriveBtn = document.getElementById("restoreFromDriveBtn");
+      const syncStatusEl = document.getElementById("syncStatus");
+
+      
+      let currentFilter = "all";
+
+      function updateSyncButtons() {
+        const enabled = !!googleAccessToken;
+        if (backupToDriveBtn) backupToDriveBtn.disabled = !enabled;
+        if (restoreFromDriveBtn) restoreFromDriveBtn.disabled = !enabled;
+        if (syncStatusEl)
+          syncStatusEl.textContent = enabled
+            ? "Ready to sync with Drive"
+            : "Sign in to enable sync";
+      }
+
+      
+      function updateAccountStatus() {
+        if (!googleAccessToken || !googleUserEmail) {
+          accountStatusEl.textContent = "Not signed in · sync disabled";
+        } else {
+          accountStatusEl.textContent = "Signed in with Google";
+        }
+        updateSyncButtons();
+        
+      }
+
+      updateAccountStatus();
+
+      function initGoogleIdentity() {
+        if (!window.google || !google.accounts || !google.accounts.oauth2)
+          return;
+
+        googleTokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: DRIVE_SCOPES,
+          callback: (tokenResponse) => {
+            googleAccessToken = tokenResponse.access_token || null;
+            googleUserEmail = "Google account";
+            updateAccountStatus();
+          },
+        });
+      }
+
+      window.addEventListener("load", () => {
+        if (window.google && google.accounts && google.accounts.oauth2) {
+          initGoogleIdentity();
+        } else {
+          setTimeout(initGoogleIdentity, 1000);
+        }
+      });
+
+      googleSignInBtn.addEventListener("click", () => {
+        if (!googleTokenClient) {
+          alert("Google sign-in not ready yet. Try again in a moment.");
+          return;
+        }
+        // Force consent to ensure new scope is requested if needed
+        googleTokenClient.requestAccessToken({ prompt: "consent" });
+      });
+
+      function updateSidebar() {
+        const allStates = Object.keys(stateLayers).sort((a, b) =>
+          a.localeCompare(b)
+        );
+
+        const visitedStates = allStates.filter((s) => {
+          const entry = stateData[s];
+          return entry && entry.visited;
+        });
+
+        visitedCountEl.textContent = visitedStates.length.toString();
+        visitedListCountEl.textContent = visitedStates.length.toString();
+
+        visitedListEl.innerHTML = "";
+
+        visitedStates.forEach((stateName) => {
+          const li = document.createElement("div");
+          li.className = "visited-item";
+          li.dataset.state = stateName;
+
+          const titleSpan = document.createElement("span");
+          titleSpan.textContent = stateName;
+
+          const badge = document.createElement("span");
+          badge.className = "badge";
+
+          if (stateName === HOME_STATE) {
+            badge.classList.add("badge-home");
+            badge.textContent = "Home";
+          } else {
+            const entry = stateData[stateName];
+            const hasNote =
+              entry && entry.note && entry.note.trim().length > 0;
+            // hasMedia = any place with media
+            const hasMedia =
+              entry &&
+              Array.isArray(entry.places) &&
+              entry.places.some((p) => Array.isArray(p.media) && p.media.length > 0);
+
+            if (hasMedia && hasNote) badge.textContent = "Note + Media";
+            else if (hasMedia) badge.textContent = "Media";
+            else if (hasNote) badge.textContent = "Note";
+            else badge.textContent = "Visited";
+          }
+
+          li.appendChild(titleSpan);
+          li.appendChild(badge);
+
+          li.addEventListener("click", () => {
+            const layer = stateLayers[stateName];
+            if (layer) {
+              const bounds = layer.getBounds();
+              map.fitBounds(bounds.pad(0.4));
+              openModalForState(stateName);
+            }
+          });
+
+          visitedListEl.appendChild(li);
+        });
+      }
+
+      filterBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          currentFilter = btn.dataset.filter;
+          filterBtns.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          Object.entries(stateLayers).forEach(([name, layer]) => {
+            const entry = stateData[name];
+            const visited = entry && entry.visited;
+
+            let show = true;
+            if (currentFilter === "visited") show = !!visited;
+            else if (currentFilter === "notVisited") show = !visited;
+
+            if (show) layer.addTo(map);
+            else map.removeLayer(layer);
+          });
+        });
+      });
+
+      // --- Modal elements & media ---
+      const modalBackdrop = document.getElementById("stateModalBackdrop");
+      const modalStateNameEl = document.getElementById("modalStateName");
+      const homeBadgeEl = document.getElementById("homeBadge");
+      const visitedCheckbox = document.getElementById("visitedCheckbox");
+      const noteTextarea = document.getElementById("noteTextarea");
+      const mediaInput = document.getElementById("mediaInput");
+      const photosPreview = document.getElementById("photosPreview");
+      const videosPreview = document.getElementById("videosPreview");
+      const uploadProgressEl = document.getElementById("uploadProgress");
+      const saveStateBtn = document.getElementById("saveStateBtn");
+      const clearStateBtn = document.getElementById("clearStateBtn");
+      const modalCloseBtn = document.getElementById("modalCloseBtn");
+      const openGalleryBtn = document.getElementById("openGalleryBtn");
+
+      // Place editor elements
+      const placeEditor = document.getElementById("placeEditor");
+      const placeEditorNameEl = document.getElementById("placeEditorName");
+      const placeNoteTextarea = document.getElementById("placeNoteTextarea");
+      const placeMediaInput = document.getElementById("placeMediaInput");
+      const placePhotosPreview = document.getElementById("placePhotosPreview");
+      const placeVideosPreview = document.getElementById("placeVideosPreview");
+      const placeUploadProgressEl = document.getElementById("placeUploadProgress");
+      const savePlaceBtn = document.getElementById("savePlaceBtn");
+      const deletePlaceBtn = document.getElementById("deletePlaceBtn");
+      const closePlaceEditorBtn = document.getElementById("closePlaceEditorBtn");
+
+      let currentStateName = null;
+      let currentImages = []; // {id?, type:'image', src, driveFileId?} (temp state modal uploads -> moved to General place on save)
+      let existingVideosMeta = []; // used for legacy entries (temporary)
+      let newVideos = []; // temporary videos added via state modal
+      let activePlaceId = null; // currently editing place
+
+      function renderMediaPreview() {
+        photosPreview.innerHTML = "";
+        videosPreview.innerHTML = "";
+
+        currentImages.forEach((imgItem) => {
+  const img = document.createElement("img");
+  img.src = imgItem.src;
+  img.className = "media-thumb";
+  img.title = "Photo";
+
+  img.addEventListener("click", () => {
+    openImageViewer(imgItem.src, currentStateName || "Photo");
+  });
+
+  photosPreview.appendChild(img);
+});
+
+
+        const videoItems = [
+          ...existingVideosMeta.map((v) => ({ ...v, source: "existing" })),
+          ...newVideos.map((v) => ({ ...v, source: "new" })),
+        ];
+
+        videoItems.forEach((item) => {
+          const tile = document.createElement("div");
+          tile.className = "video-tile";
+
+          if (item.thumb) {
+            const thumbImg = document.createElement("img");
+            thumbImg.src = item.thumb;
+            tile.appendChild(thumbImg);
+          }
+
+          const overlay = document.createElement("div");
+          overlay.className = "video-tile-overlay";
+          const sizeMb = (item.size / (1024 * 1024)).toFixed(1);
+          overlay.textContent = sizeMb + " MB";
+          tile.appendChild(overlay);
+
+          const playIcon = document.createElement("div");
+          playIcon.className = "video-tile-play";
+          playIcon.textContent = "▶";
+          tile.appendChild(playIcon);
+
+          tile.addEventListener("click", () => {
+            playSingleVideo(item);
+          });
+
+          videosPreview.appendChild(tile);
+        });
+
+        const totalVideos = existingVideosMeta.length + newVideos.length;
+        openGalleryBtn.disabled = currentImages.length + totalVideos === 0;
+        openGalleryBtn.style.opacity = openGalleryBtn.disabled ? "0.5" : "1";
+      }
+
+      mediaInput.addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+
+        uploadProgressEl.textContent = "Preparing files…";
+
+        for (const file of files) {
+          if (file.type.startsWith("image/")) {
+            const dataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (ev) => resolve(ev.target.result);
+              reader.onerror = () => reject(reader.error);
+              reader.readAsDataURL(file);
+            });
+            currentImages.push({ type: "image", src: dataUrl });
+          } else if (file.type.startsWith("video/")) {
+            const thumb = await extractVideoThumbnail(file);
+            newVideos.push({
+              tempId:
+                Date.now().toString(10) +
+                "-" +
+                Math.random().toString(36).slice(2),
+              file,
+              size: file.size,
+              thumb: thumb,
+            });
+          }
+        }
+
+        uploadProgressEl.textContent = "";
+        renderMediaPreview();
+      });
+
+      function openModalForState(name) {
+        currentStateName = name;
+        modalStateNameEl.textContent = name;
+
+        const entry =
+          stateData[name] || {
+            name,
+            visited: name === HOME_STATE,
+            note: "",
+            places: [],
+            isHome: name === HOME_STATE,
+          };
+
+        visitedCheckbox.checked = entry.visited || name === HOME_STATE;
+        noteTextarea.value = entry.note || "";
+        homeBadgeEl.style.display = name === HOME_STATE ? "inline-flex" : "none";
+
+        // Clear temporary modal-level previews: state-level media is now stored in places.
+        currentImages = [];
+        existingVideosMeta = [];
+        newVideos = [];
+
+        mediaInput.value = "";
+        uploadProgressEl.textContent = "";
+        renderMediaPreview();
+
+        // Hide place editor initially and render the places list
+        activePlaceId = null;
+        placeEditor.style.display = "none";
+        renderPlacesListForModal(name);
+
+        modalBackdrop.classList.add("active");
+      }
+
+      /* ===== Places per state: data model & UI helpers ===== */
+
+      /**
+       * Ensure the state record shape includes .places array
+       * Example stateData[stateName] = { name, visited, note, isHome, places: [{id,name,note,media:[]}] }
+       */
+      function ensureStatePlacesShape(name) {
+        if (!stateData[name]) stateData[name] = { name, visited: name === HOME_STATE, note: "", places: [], isHome: name === HOME_STATE };
+        if (!Array.isArray(stateData[name].places)) {
+          // migrate legacy 'media' into default 'General' place if present
+          const legacyMedia = Array.isArray(stateData[name].media) ? stateData[name].media : [];
+          stateData[name].places = [];
+          if (legacyMedia.length) {
+            stateData[name].places.push({
+              id: makeId("place"),
+              name: "General",
+              note: "",
+              media: legacyMedia.slice(),
+            });
+          }
+          // remove top-level media to avoid duplication
+          stateData[name].media = [];
+        }
+      }
+
+      /* Render places list inside the modal */
+      function renderPlacesListForModal(name) {
+        ensureStatePlacesShape(name);
+        const placesList = document.getElementById("placesList");
+        placesList.innerHTML = "";
+
+        const places = stateData[name].places || [];
+        if (!places.length) {
+          const el = document.createElement("div");
+          el.style.color = "#9ca3af";
+          el.style.fontSize = "0.85rem";
+          el.textContent = "No places yet. Add a place above (e.g. Mathura)";
+          placesList.appendChild(el);
+          return;
+        }
+
+        places.forEach((p) => {
+          const row = document.createElement("div");
+          row.className = "visited-item";
+          row.style.display = "flex";
+          row.style.justifyContent = "space-between";
+          row.style.alignItems = "center";
+          row.style.gap = "8px";
+          row.dataset.placeId = p.id;
+
+          const left = document.createElement("div");
+          left.style.display = "flex";
+          left.style.gap = "8px";
+          left.style.alignItems = "center";
+
+          const title = document.createElement("span");
+          title.textContent = p.name;
+
+          const count = document.createElement("span");
+          count.className = "badge";
+          const mediaCount = Array.isArray(p.media) ? p.media.length : 0;
+          count.textContent = mediaCount ? mediaCount + " media" : "empty";
+
+          left.appendChild(title);
+          row.appendChild(left);
+          row.appendChild(count);
+
+          // open place editor on click
+          row.addEventListener("click", () => {
+            openPlaceEditor(name, p.id);
+          });
+
+          placesList.appendChild(row);
+        });
+      }
+
+      /* Add new place to current state (from modal) */
+      document.getElementById("addPlaceBtn").addEventListener("click", () => {
+        const placeName = (document.getElementById("newPlaceInput").value || "").trim();
+        if (!placeName) return;
+        if (!currentStateName) return;
+
+        ensureStatePlacesShape(currentStateName);
+        const id = makeId("place");
+        const newPlace = { id, name: placeName, note: "", media: [] };
+        stateData[currentStateName].places.unshift(newPlace);
+        saveStateToDb(stateData[currentStateName]).then(() => {
+          document.getElementById("newPlaceInput").value = "";
+          renderPlacesListForModal(currentStateName);
+          updateSidebar();
+        }).catch(err => console.error("save place failed", err));
+      });
+
+      /* Place editor: open */
+      function openPlaceEditor(stateName, placeId) {
+        if (!stateName || !placeId) return;
+        currentStateName = stateName;
+        ensureStatePlacesShape(stateName);
+        const place = (stateData[stateName].places || []).find(p => p.id === placeId);
+        if (!place) return;
+
+        activePlaceId = placeId;
+        placeEditor.style.display = "block";
+        placeEditorNameEl.textContent = place.name;
+        placeNoteTextarea.value = place.note || "";
+
+        // populate previews
+        renderPlaceMediaPreviews(place);
+      }
+
+      /* Close place editor */
+      closePlaceEditorBtn.addEventListener("click", () => {
+        activePlaceId = null;
+        placeEditor.style.display = "none";
+      });
+
+      /* Render place media previews */
+      function renderPlaceMediaPreviews(place) {
+        placePhotosPreview.innerHTML = "";
+        placeVideosPreview.innerHTML = "";
+
+        (place.media || []).forEach(m => {
+          if (m.type === "image") {
+  const img = document.createElement("img");
+  img.src = m.src;
+  img.className = "media-thumb";
+
+  img.addEventListener("click", () => {
+    const title = (currentStateName || "Photo") + (place.name ? " – " + place.name : "");
+    openImageViewer(m.src, title);
+  });
+
+  placePhotosPreview.appendChild(img);
+}
+ else if (m.type === "video") {
+            const tile = document.createElement("div");
+            tile.className = "video-tile";
+            if (m.thumb) {
+              const t = document.createElement("img");
+              t.src = m.thumb;
+              tile.appendChild(t);
+            }
+            const overlay = document.createElement("div");
+            overlay.className = "video-tile-overlay";
+            overlay.textContent = ((m.size || 0)/(1024*1024)).toFixed(1) + " MB";
+            tile.appendChild(overlay);
+            const playIcon = document.createElement("div");
+            playIcon.className = "video-tile-play";
+            playIcon.textContent = "▶";
+            tile.appendChild(playIcon);
+
+            tile.addEventListener("click", () => {
+              playSingleVideo({ source: "existing", id: m.id });
+            });
+
+            placeVideosPreview.appendChild(tile);
+          }
+        });
+      }
+
+      /* Handle place file input -> add to place (use existing extract/save functions) */
+      placeMediaInput.addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length || !currentStateName || !activePlaceId) return;
+
+        const place = (stateData[currentStateName].places || []).find(p => p.id === activePlaceId);
+        if (!place) return;
+
+        placeUploadProgressEl.textContent = "Preparing files…";
+
+        for (const file of files) {
+          if (file.type.startsWith("image/")) {
+            const dataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = (ev) => resolve(ev.target.result);
+              reader.onerror = () => reject(reader.error);
+              reader.readAsDataURL(file);
+            });
+
+            const mediaId = makeId("media");
+            place.media.push({ id: mediaId, type: "image", src: dataUrl, driveFileId: null });
+          } else if (file.type.startsWith("video/")) {
+            const thumb = await extractVideoThumbnail(file);
+            const mediaId = makeId("media");
+            // Save chunked to IDB as before
+            await saveVideoFileChunked(mediaId, file, (done, total) => {
+              placeUploadProgressEl.textContent = `Uploading… ${((done/total)*100).toFixed(0)}%`;
+            });
+
+            place.media.push({ id: mediaId, type: "video", size: file.size, chunked: true, thumb, driveFileId: null });
+          }
+        }
+
+        // persist
+        await saveStateToDb(stateData[currentStateName]);
+        placeUploadProgressEl.textContent = "";
+        renderPlaceMediaPreviews(place);
+        renderPlacesListForModal(currentStateName);
+        updateSidebar();
+        e.target.value = "";
+      });
+
+      /* Save place note / deletion */
+      savePlaceBtn.addEventListener("click", async () => {
+        if (!currentStateName || !activePlaceId) return;
+        const place = (stateData[currentStateName].places || []).find(p => p.id === activePlaceId);
+        if (!place) return;
+        place.note = placeNoteTextarea.value || "";
+        await saveStateToDb(stateData[currentStateName]);
+        renderPlacesListForModal(currentStateName);
+        // close
+        activePlaceId = null;
+        placeEditor.style.display = "none";
+        updateSidebar();
+      });
+
+      /* Delete place */
+      deletePlaceBtn.addEventListener("click", async () => {
+        if (!currentStateName || !activePlaceId) return;
+        if (!confirm("Delete this place and its local media? This cannot be undone.")) return;
+        const places = stateData[currentStateName].places || [];
+        const idx = places.findIndex(p => p.id === activePlaceId);
+        if (idx === -1) return;
+        const place = places[idx];
+        // remove any chunked videos from IDB
+        for (const m of place.media || []) {
+          if (m.type === "video" && m.id) {
+            try { await deleteVideoChunks(m.id); } catch(e){ console.warn("failed to delete chunks", e); }
+          }
+        }
+        places.splice(idx, 1);
+        await saveStateToDb(stateData[currentStateName]);
+        activePlaceId = null;
+        placeEditor.style.display = "none";
+        renderPlacesListForModal(currentStateName);
+        updateSidebar();
+      });
+
+      function closeModal() {
+        modalBackdrop.classList.remove("active");
+        currentStateName = null;
+        currentImages = [];
+        existingVideosMeta = [];
+        newVideos = [];
+        uploadProgressEl.textContent = "";
+        activePlaceId = null;
+        placeEditor.style.display = "none";
+      }
+
+      // --- Drive helpers for sync (NEW) ---
+      async function uploadImageToDrive(parentFolderId, dataUrl, name) {
+        try {
+          const blob = dataUrlToBlob(dataUrl);
+          return await uploadFileToDrive(parentFolderId, blob, name, blob.type);
+        } catch (e) {
+          console.error("uploadImageToDrive failed:", e);
+          return null;
+        }
+      }
+
+      // Resumable upload for large video files
+async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallback) {
+  if (!googleAccessToken) throw new Error("Not signed in with Google");
+
+  // 1) Start Drive resumable session
+  const initRes = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",
+    {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + googleAccessToken,
+        "Content-Type": "application/json; charset=UTF-8",
+        "X-Upload-Content-Type": file.type || "application/octet-stream",
+        "X-Upload-Content-Length": String(file.size)
+      },
+      body: JSON.stringify({
+        name,
+        parents: parentFolderId ? [parentFolderId] : undefined
+      })
+    }
+  );
+
+  if (!initRes.ok) {
+    const t = await initRes.text();
+    throw new Error("Resumable init failed: " + t);
+  }
+
+  const uploadUrl = initRes.headers.get("Location");
+  if (!uploadUrl) throw new Error("No upload URL returned");
+
+  // 2) Upload in chunks
+  const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB
+  let offset = 0;
+  const total = file.size;
+
+  while (offset < total) {
+    const end = Math.min(offset + CHUNK_SIZE, total) - 1;
+    const chunk = file.slice(offset, end + 1);
+
+    const res = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        Authorization: "Bearer " + googleAccessToken,
+        "Content-Type": file.type,
+        "Content-Range": `bytes ${offset}-${end}/${total}`
+      },
+      body: chunk
+    });
+
+    if (res.status === 308) {
+      offset = end + 1;
+      if (progressCallback) progressCallback(offset, total);
+      continue;
+    }
+
+    if (res.ok) {
+      const json = await res.json();
+      if (!json.id) throw new Error("Upload finished but no fileId returned");
+      if (progressCallback) progressCallback(total, total);
+      return json.id;
+    }
+
+    const t = await res.text();
+    throw new Error("Chunk upload failed: " + res.status + " " + t);
+  }
+
+  throw new Error("Unexpected end of resumable upload");
+}
+
+
+      // Save handler modified to upload images & attempt video upload (best-effort)
+      saveStateBtn.addEventListener("click", async () => {
+        if (!currentStateName) return;
+        saveStateBtn.disabled = true;
+        clearStateBtn.disabled = true;
+        openGalleryBtn.disabled = true;
+
+        uploadProgressEl.textContent = "Saving…";
+
+        const name = currentStateName;
+        const baseVisited = name === HOME_STATE ? true : visitedCheckbox.checked;
+
+        const entry = stateData[name] || {
+          name,
+          visited: baseVisited,
+          note: "",
+          places: [],
+          isHome: name === HOME_STATE,
+        };
+
+        entry.visited = baseVisited;
+        entry.isHome = name === HOME_STATE;
+        entry.note = noteTextarea.value.trim();
+
+        // ensure places shape exists
+        ensureStatePlacesShape(name);
+
+        // Ensure a "General" place exists to collect top-level media (if user used top-level mediaInput)
+        let generalPlace = (entry.places || []).find(p => p.name === "General");
+        if (!generalPlace) {
+          generalPlace = { id: makeId("place"), name: "General", note: "", media: [] };
+          entry.places.unshift(generalPlace);
+        }
+
+        // Move any top-level currentImages (from modal-level mediaInput) into General place
+        for (let idx = 0; idx < currentImages.length; idx++) {
+          const img = currentImages[idx];
+          const mediaId = img.id || (name + "-img-" + Date.now() + "-" + idx + "-" + Math.random().toString(36).slice(2));
+          generalPlace.media.push({
+            id: mediaId,
+            type: "image",
+            src: img.src,
+            driveFileId: img.driveFileId || null
+          });
+        }
+
+        // Move newly added videos (newVideos) into General place: save chunked and add metadata
+        try {
+          let processedSize = 0;
+          const totalNewVideosSize = newVideos.reduce((s, v) => s + (v.size || 0), 0);
+
+          const updateProgress = (done, total) => {
+            const mbDone = ((processedSize + done) / (1024 * 1024)).toFixed(1);
+            const mbTotal = ((totalNewVideosSize || 1) / (1024 * 1024)).toFixed(1);
+            uploadProgressEl.textContent = `Uploading videos… ${mbDone} / ${mbTotal} MB`;
+          };
+
+          for (let i = 0; i < newVideos.length; i++) {
+            const video = newVideos[i];
+            const mediaId = video.tempId || (name + "-vid-" + Date.now() + "-" + i + "-" + Math.random().toString(36).slice(2));
+
+            // Save chunked locally
+            await saveVideoFileChunked(mediaId, video.file, (done, total) => {
+              updateProgress(done, total);
+            });
+
+            processedSize += video.size || 0;
+
+            // Best-effort: attempt Drive upload for original file (may fail for large files)
+            let driveFileId = null;
+            if (googleAccessToken) {
+              try {
+                const mediaFolder = await ensureDriveMediaFolder();
+                const fname = name + "-video-" + Date.now() + "-" + i + ".mp4";
+                const uploadedId = await uploadVideoFileToDrive(mediaFolder, video.file, fname);
+                if (uploadedId) driveFileId = uploadedId;
+              } catch (e) {
+                console.warn("Video upload to Drive failed (will keep local chunk):", e);
+              }
+            }
+
+            generalPlace.media.push({
+              id: mediaId,
+              type: "video",
+              size: video.size || 0,
+              chunked: true,
+              thumb: video.thumb || null,
+              driveFileId: driveFileId
+            });
+          }
+
+          // Preserve existing videos that were already in state-level existingVideosMeta
+          existingVideosMeta.forEach((v) => {
+            // Put existing videos into General place if they are not already in any place
+            const already = (entry.places || []).some(p => (p.media || []).some(m => m.id === v.id));
+            if (!already) {
+              generalPlace.media.push({
+                id: v.id,
+                type: "video",
+                size: v.size || 0,
+                chunked: true,
+                thumb: v.thumb || null,
+                driveFileId: v.driveFileId || null
+              });
+            }
+          });
+
+          // Clear temp upload UI state
+          currentImages = [];
+          newVideos = [];
+          existingVideosMeta = [];
+
+          // Persist the updated state
+          stateData[name] = entry;
+          await saveStateToDb(entry);
+
+          uploadProgressEl.textContent = "";
+          applyStyleForState(name);
+          updateSidebar();
+          closeModal();
+        } catch (err) {
+          console.error("Failed to save state (places flow):", err);
+          alert("Could not save this state. Very large videos may exceed storage. Try shorter clips.");
+          uploadProgressEl.textContent = "";
+        } finally {
+          saveStateBtn.disabled = false;
+          clearStateBtn.disabled = false;
+          openGalleryBtn.disabled = false;
+        }
+      });
+
+      clearStateBtn.addEventListener("click", async () => {
+        if (!currentStateName) return;
+
+        const name = currentStateName;
+        clearStateBtn.disabled = true;
+        saveStateBtn.disabled = true;
+
+        try {
+          const entry = stateData[name];
+          if (entry && Array.isArray(entry.places)) {
+            // delete chunked videos for every place
+            for (const p of entry.places) {
+              if (!p || !Array.isArray(p.media)) continue;
+              for (const m of p.media) {
+                if (m && m.type === "video" && m.id) {
+                  await deleteVideoChunks(m.id);
+                }
+              }
+            }
+          }
+
+          if (name === HOME_STATE) {
+            const record = {
+              name: HOME_STATE,
+              visited: true,
+              note: "",
+              places: [],
+              isHome: true,
+            };
+            stateData[HOME_STATE] = record;
+            await saveStateToDb(record);
+          } else {
+            delete stateData[name];
+            await deleteStateFromDb(name);
+          }
+
+          applyStyleForState(name);
+          updateSidebar();
+          closeModal();
+        } catch (err) {
+          console.error("Failed to clear state:", err);
+          alert("Could not clear this state.");
+        } finally {
+          clearStateBtn.disabled = false;
+          saveStateBtn.disabled = false;
+        }
+      });
+
+      modalCloseBtn.addEventListener("click", closeModal);
+      modalBackdrop.addEventListener("click", (e) => {
+        if (e.target === modalBackdrop) closeModal();
+      });
+
+      // ---------------- Sync functions (Backup / Restore) ----------------
+
+      // Helper: save downloaded video Blob into chunked IndexedDB
+      async function saveVideoBlobIntoChunks(mediaId, blob) {
+        const total = blob.size;
+        let offset = 0;
+        let index = 0;
+
+        while (offset < total) {
+          const slice = blob.slice(offset, offset + CHUNK_SIZE);
+          const arrayBuffer = await slice.arrayBuffer();
+          await saveVideoChunk(mediaId, index, arrayBuffer);
+
+          offset += CHUNK_SIZE;
+          index++;
+
+          await new Promise((r) => setTimeout(r, 0));
+        }
+      }
+
+      // Build snapshot (strip heavy binary) and upload mapState.json to Drive
+      // snapshot now contains places with media metadata
+      async function syncMapStateToDrive() {
+        if (!googleAccessToken) {
+          alert("Sign in to Google first.");
+          return;
+        }
+
+        try {
+          syncStatusEl.textContent = "Preparing backup…";
+
+          const folderId = await ensureDriveFolder();
+          const mediaFolderId = await ensureDriveMediaFolder();
+
+          const snapshot = {
+            generatedAt: new Date().toISOString(),
+            states: [],
+          };
+
+          for (const [name, entry] of Object.entries(stateData)) {
+            const rec = {
+              name: entry.name,
+              visited: !!entry.visited,
+              note: entry.note || "",
+              isHome: !!entry.isHome,
+              places: [],
+            };
+
+            for (let pi = 0; pi < (entry.places || []).length; pi++) {
+              const p = entry.places[pi];
+              const placeMeta = {
+                id: p.id,
+                name: p.name,
+                note: p.note || "",
+                media: [],
+              };
+
+              for (let i = 0; i < (p.media || []).length; i++) {
+                const m = p.media[i];
+
+                if (m.type === "image") {
+                  const meta = {
+                    type: "image",
+                    driveFileId: m.driveFileId || null,
+                  };
+
+                  // If not uploaded yet, try to upload current src (dataURL)
+                  if (!meta.driveFileId && m.src && googleAccessToken) {
+                    try {
+                      const fname = name + "-" + (p.name || "place") + "-img-" + Date.now() + "-" + i + ".jpg";
+                      const fileId = await uploadImageToDrive(mediaFolderId, m.src, fname);
+                      if (fileId) {
+                        meta.driveFileId = fileId;
+                        // update local
+                        m.driveFileId = fileId;
+                        await saveStateToDb(stateData[name]); // persist driveFileId immediately
+                      }
+                    } catch (e) {
+                      console.warn("Image upload in backup step failed for", name, e);
+                    }
+                  }
+
+                  placeMeta.media.push(meta);
+                } else if (m.type === "video") {
+                  const meta = {
+                    type: "video",
+                    driveFileId: m.driveFileId || null,
+                    size: m.size || 0,
+                    thumb: m.thumb || null,
+                  };
+                  placeMeta.media.push(meta);
+                }
+              }
+
+              rec.places.push(placeMeta);
+            }
+
+            snapshot.states.push(rec);
+          }
+
+          const jsonBlob = new Blob([JSON.stringify(snapshot, null, 2)], {
+            type: "application/json",
+          });
+
+          const fileId = await uploadFileToDrive(folderId, jsonBlob, "mapState.json", "application/json");
+
+          if (fileId) {
+            const ts = new Date().toLocaleString();
+            syncStatusEl.textContent = "Last backed up: " + ts;
+            alert("Backup complete.");
+          } else {
+            throw new Error("Could not upload mapState.json");
+          }
+        } catch (err) {
+          console.error("Backup failed:", err);
+          syncStatusEl.textContent = "Backup failed";
+          alert("Backup failed: " + (err.message || err));
+        } finally {
+          updateSyncButtons();
+        }
+      }
+
+      // Find latest mapState.json, download and restore; download media referenced and persist
+      async function loadMapStateFromDrive() {
+        if (!googleAccessToken) {
+          alert("Sign in to Google first.");
+          return;
+        }
+
+        try {
+          syncStatusEl.textContent = "Looking for backups…";
+
+          const folderId = await ensureDriveFolder();
+          const q = encodeURIComponent("name = 'mapState.json' and trashed = false and '" + folderId + "' in parents");
+
+          const data = await driveApiRequest("/files?q=" + q + "&fields=files(id,name,modifiedTime)");
+
+          if (!data.files || data.files.length === 0) {
+            alert("No backup (mapState.json) found in Drive folder.");
+            syncStatusEl.textContent = "No backup found";
+            return;
+          }
+
+          data.files.sort((a, b) => new Date(b.modifiedTime || 0) - new Date(a.modifiedTime || 0));
+
+          const fileId = data.files[0].id;
+          syncStatusEl.textContent = "Downloading backup…";
+
+          const blob = await downloadDriveFileAsBlob(fileId);
+          const text = await blob.text();
+          const snapshot = JSON.parse(text);
+
+          const restored = {};
+
+          for (const s of snapshot.states || []) {
+            const newRec = {
+              name: s.name,
+              visited: !!s.visited,
+              note: s.note || "",
+              places: [],
+              isHome: !!s.isHome,
+            };
+
+            for (const p of (s.places || [])) {
+              const newPlace = {
+                id: p.id || makeId("place"),
+                name: p.name || "Place",
+                note: p.note || "",
+                media: [],
+              };
+
+              for (let i = 0; i < (p.media || []).length; i++) {
+                const m = p.media[i];
+
+                if (m.type === "image") {
+                  let src = null;
+                  if (m.driveFileId) {
+                    try {
+                      const imgBlob = await downloadDriveFileAsBlob_resumable(m.driveFileId);
+ 	
+                      src = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => resolve(ev.target.result);
+                        reader.onerror = () => resolve(null);
+                        reader.readAsDataURL(imgBlob);
+                      });
+                    } catch (e) {
+                      console.warn("Failed to download image", m.driveFileId, e);
+                    }
+                  }
+
+                  newPlace.media.push({
+                    id: m.driveFileId || (newPlace.name + "-img-" + i + "-" + Math.random().toString(36).slice(2)),
+                    type: "image",
+                    driveFileId: m.driveFileId || null,
+                    src: src,
+                  });
+                } else if (m.type === "video") {
+                  if (m.driveFileId) {
+                    try {
+                      const vidBlob = await downloadDriveFileAsBlob_resumable(m.driveFileId);
+                      const mediaId = newRec.name + "-vid-" + Date.now() + "-" + i + "-" + Math.random().toString(36).slice(2);
+                      await saveVideoBlobIntoChunks(mediaId, vidBlob);
+
+                      newPlace.media.push({
+                        id: mediaId,
+                        type: "video",
+                        size: vidBlob.size,
+                        chunked: true,
+                        driveFileId: m.driveFileId,
+                        thumb: m.thumb || null,
+                      });
+                    } catch (e) {
+                      console.warn("Failed to restore video", m.driveFileId, e);
+                      newPlace.media.push({
+                        id: m.driveFileId || (newPlace.name + "-vid-" + i + "-missing"),
+                        type: "video",
+                        size: m.size || 0,
+                        chunked: false,
+                        driveFileId: m.driveFileId || null,
+                        thumb: m.thumb || null,
+                      });
+                    }
+                  } else {
+                    newPlace.media.push({
+                      id: m.id || (newPlace.name + "-vid-" + i + "-" + Math.random().toString(36).slice(2)),
+                      type: "video",
+                      size: m.size || 0,
+                      chunked: !!m.chunked,
+                      driveFileId: null,
+                      thumb: m.thumb || null,
+                    });
+                  }
+                }
+              }
+
+              newRec.places.push(newPlace);
+            }
+
+            restored[s.name] = newRec;
+          }
+
+          // Overwrite local DB entries with restored data
+          for (const [k, r] of Object.entries(restored)) {
+            stateData[k] = r;
+            await saveStateToDb(r);
+          }
+
+          // ensure home state
+          if (!stateData[HOME_STATE]) {
+            stateData[HOME_STATE] = {
+              name: HOME_STATE,
+              visited: true,
+              note: "",
+              places: [],
+              isHome: true,
+            };
+            await saveStateToDb(stateData[HOME_STATE]);
+          }
+
+          Object.keys(stateLayers).forEach((name) => applyStyleForState(name));
+          updateSidebar();
+
+          const ts = new Date().toLocaleString();
+          syncStatusEl.textContent = "Restored from backup: " + ts;
+          alert("Restore complete.");
+        } catch (err) {
+          console.error("Restore failed:", err);
+          syncStatusEl.textContent = "Restore failed";
+          alert("Restore failed: " + (err.message || err));
+        } finally {
+          updateSyncButtons();
+        }
+      }
+
+      // Wire up backup/restore buttons
+      if (backupToDriveBtn) {
+        backupToDriveBtn.addEventListener("click", async () => {
+          backupToDriveBtn.disabled = true;
+          try {
+            await syncMapStateToDrive();
+          } finally {
+            backupToDriveBtn.disabled = false;
+          }
+        });
+      }
+
+      if (restoreFromDriveBtn) {
+        restoreFromDriveBtn.addEventListener("click", async () => {
+          if (!confirm("This will overwrite local saved states with the backup. Continue?")) return;
+
+          restoreFromDriveBtn.disabled = true;
+          try {
+            await loadMapStateFromDrive();
+          } finally {
+            restoreFromDriveBtn.disabled = false;
+          }
+        });
+      }
+// --- Image viewer overlay ---
+const imageViewerBackdrop = document.getElementById("imageViewerBackdrop");
+const imageViewerTitleEl = document.getElementById("imageViewerTitle");
+const imageViewerImgEl = document.getElementById("imageViewerImg");
+const imageViewerCloseBtn = document.getElementById("imageViewerCloseBtn");
+
+function openImageViewer(src, title) {
+  if (!src) return;
+  imageViewerImgEl.src = src;
+  imageViewerTitleEl.textContent = title || "Photo";
+  imageViewerBackdrop.classList.add("active");
+}
+
+function closeImageViewer() {
+  imageViewerImgEl.src = "";
+  imageViewerBackdrop.classList.remove("active");
+}
+
+imageViewerCloseBtn.addEventListener("click", closeImageViewer);
+imageViewerBackdrop.addEventListener("click", (e) => {
+  if (e.target === imageViewerBackdrop) closeImageViewer();
+});
+
+
+
+      // --- Single video player overlay ---
+      const videoPlayerBackdrop = document.getElementById("videoPlayerBackdrop");
+      const videoPlayerTitleEl = document.getElementById("videoPlayerTitle");
+      const videoPlayerSubEl = document.getElementById("videoPlayerSub");
+      const videoPlayerEl = document.getElementById("videoPlayerElement");
+      const videoPlayerCloseBtn = document.getElementById("videoPlayerCloseBtn");
+
+      let currentVideoObjectUrl = null;
+
+      async function playSingleVideo(item) {
+        if (!currentStateName) return;
+
+        if (currentVideoObjectUrl) {
+          URL.revokeObjectURL(currentVideoObjectUrl);
+          currentVideoObjectUrl = null;
+        }
+
+        videoPlayerEl.src = "";
+        videoPlayerSubEl.textContent = "Loading video…";
+        videoPlayerTitleEl.textContent = currentStateName;
+
+        videoPlayerBackdrop.classList.add("active");
+
+        try {
+          let url;
+
+          if (item.source === "new" && item.file) {
+            url = URL.createObjectURL(item.file);
+          } else if (item.source === "existing" && item.id) {
+            const blob = await loadVideoBlob(item.id);
+            if (!blob) throw new Error("No data for this video");
+            url = URL.createObjectURL(blob);
+          } else {
+            throw new Error("Unknown video source");
+          }
+
+          currentVideoObjectUrl = url;
+          videoPlayerEl.src = url;
+          videoPlayerSubEl.textContent = "Playing selected video";
+          videoPlayerEl.play().catch(() => {});
+        } catch (err) {
+          console.error("Error playing video:", err);
+          videoPlayerSubEl.textContent = "Could not load this video.";
+        }
+      }
+
+      function closeVideoPlayer() {
+        if (currentVideoObjectUrl) {
+          URL.revokeObjectURL(currentVideoObjectUrl);
+          currentVideoObjectUrl = null;
+        }
+        videoPlayerEl.pause();
+        videoPlayerEl.src = "";
+        videoPlayerBackdrop.classList.remove("active");
+      }
+
+      videoPlayerCloseBtn.addEventListener("click", closeVideoPlayer);
+      videoPlayerBackdrop.addEventListener("click", (e) => {
+        if (e.target === videoPlayerBackdrop) closeVideoPlayer();
+      });
+
+      // --- Gallery / slideshow ---
+      const galleryBackdrop = document.getElementById("galleryBackdrop");
+      const galleryStateTitleEl = document.getElementById("galleryStateTitle");
+      const gallerySubtitleEl = document.getElementById("gallerySubtitle");
+      const galleryMainEl = document.getElementById("galleryMain");
+      const galleryCounterEl = document.getElementById("galleryCounter");
+      const galleryThumbStripEl = document.getElementById("galleryThumbStrip");
+      const galleryCloseBtn = document.getElementById("galleryCloseBtn");
+      const prevMediaBtn = document.getElementById("prevMediaBtn");
+      const nextMediaBtn = document.getElementById("nextMediaBtn");
+
+      let galleryStateName = null;
+      let galleryMedia = [];
+      let galleryIndex = 0;
+
+      function renderGalleryView() {
+        galleryMainEl.innerHTML = "";
+        galleryThumbStripEl.innerHTML = "";
+
+        if (!galleryMedia.length) {
+          galleryCounterEl.textContent = "0 / 0";
+          const div = document.createElement("div");
+          div.className = "gallery-loading";
+          div.textContent = "No media saved for this place.";
+          galleryMainEl.appendChild(div);
+          gallerySubtitleEl.textContent = "No media available";
+          return;
+        }
+
+        const current = galleryMedia[galleryIndex];
+        let mainEl;
+
+        if (current.type === "video") {
+          mainEl = document.createElement("video");
+          mainEl.src = current.src;
+          mainEl.controls = true;
+          mainEl.autoplay = true;
+          mainEl.playsInline = true;
+        } else {
+          mainEl = document.createElement("img");
+          mainEl.src = current.src;
+        }
+
+        galleryMainEl.appendChild(mainEl);
+        galleryCounterEl.textContent = galleryIndex + 1 + " / " + galleryMedia.length;
+
+        galleryMedia.forEach((item, idx) => {
+          const wrap = document.createElement("div");
+          wrap.className = "gallery-thumb";
+          if (idx === galleryIndex) wrap.classList.add("active");
+
+          if (item.type === "video") {
+            if (item.thumb) {
+              const img = document.createElement("img");
+              img.src = item.thumb;
+              wrap.appendChild(img);
+            } else {
+              const div = document.createElement("div");
+              div.style.width = "100%";
+              div.style.height = "100%";
+              div.style.display = "flex";
+              div.style.alignItems = "center";
+              div.style.justifyContent = "center";
+              div.textContent = "🎬";
+              wrap.appendChild(div);
+            }
+          } else {
+            const img = document.createElement("img");
+            img.src = item.src;
+            wrap.appendChild(img);
+          }
+
+          wrap.addEventListener("click", () => {
+            galleryIndex = idx;
+            renderGalleryView();
+          });
+
+          galleryThumbStripEl.appendChild(wrap);
+        });
+      }
+
+      // openGallery now requires an activePlaceId (selected place)
+      async function openGallery() {
+        if (!currentStateName) return;
+
+        if (!activePlaceId) {
+          alert("Please select a place in this state (click a place in the modal) before opening the gallery.");
+          return;
+        }
+
+        const stateRec = stateData[currentStateName];
+        if (!stateRec) return;
+        const place = (stateRec.places || []).find(p => p.id === activePlaceId);
+        if (!place) {
+          alert("Selected place not found.");
+          return;
+        }
+
+        galleryStateName = currentStateName + " / " + (place.name || "Place");
+        galleryStateTitleEl.textContent = galleryStateName;
+        gallerySubtitleEl.textContent = "Loading saved photos & videos…";
+
+        galleryBackdrop.classList.add("active");
+        galleryMainEl.innerHTML = "";
+        galleryThumbStripEl.innerHTML = "";
+        galleryCounterEl.textContent = "0 / 0";
+
+        const loadingDiv = document.createElement("div");
+        loadingDiv.className = "gallery-loading";
+        loadingDiv.textContent = "Preparing media (videos may take a bit)…";
+        galleryMainEl.appendChild(loadingDiv);
+
+        galleryMedia = [];
+        galleryIndex = 0;
+
+        for (const m of (place.media || [])) {
+          if (m.type === "image" && m.src) {
+            galleryMedia.push({
+              type: "image",
+              src: m.src,
+              id: m.id,
+            });
+          } else if (m.type === "video" && m.id) {
+            try {
+              const blob = await loadVideoBlob(m.id);
+              if (!blob) continue;
+              const url = URL.createObjectURL(blob);
+              galleryMedia.push({
+                type: "video",
+                src: url,
+                id: m.id,
+                thumb: m.thumb || null,
+              });
+            } catch (err) {
+              console.error("Failed to load video:", err);
+            }
+          }
+        }
+
+        if (!galleryMedia.length) {
+          galleryMainEl.innerHTML = "";
+          const div = document.createElement("div");
+          div.className = "gallery-loading";
+          div.textContent = "No playable media (maybe videos failed to load).";
+          galleryMainEl.appendChild(div);
+          gallerySubtitleEl.textContent = "No media available";
+          galleryCounterEl.textContent = "0 / 0";
+          return;
+        }
+
+        gallerySubtitleEl.textContent = "Slideshow of saved photos & videos for " + (place.name || "this place");
+        renderGalleryView();
+      }
+
+      function closeGallery() {
+        galleryMedia.forEach((m) => {
+          if (m.type === "video" && m.src && m.src.startsWith("blob:")) {
+            URL.revokeObjectURL(m.src);
+          }
+        });
+
+        galleryBackdrop.classList.remove("active");
+        galleryMedia = [];
+        galleryIndex = 0;
+        galleryMainEl.innerHTML = "";
+        galleryThumbStripEl.innerHTML = "";
+        galleryCounterEl.textContent = "0 / 0";
+      }
+
+      openGalleryBtn.addEventListener("click", () => {
+        if (!currentStateName) return;
+        openGallery();
+      });
+
+      galleryCloseBtn.addEventListener("click", closeGallery);
+      galleryBackdrop.addEventListener("click", (e) => {
+        if (e.target === galleryBackdrop) closeGallery();
+      });
+
+      prevMediaBtn.addEventListener("click", () => {
+        if (!galleryMedia.length) return;
+        galleryIndex = (galleryIndex - 1 + galleryMedia.length) % galleryMedia.length;
+        renderGalleryView();
+      });
+
+      nextMediaBtn.addEventListener("click", () => {
+        if (!galleryMedia.length) return;
+        galleryIndex = (galleryIndex + 1) % galleryMedia.length;
+        renderGalleryView();
+      });
+
+      // --- Init app ---
+      async function initApp() {
+        await loadStateDataFromDb();
+
+        try {
+          const res = await fetch(INDIA_GEOJSON_URL);
+          const geojson = await res.json();
+
+          L.geoJSON(geojson, {
+            style: baseStyle,
+            onEachFeature: (feature, layer) => {
+              const stateName = feature.properties.ST_NM;
+              if (!stateName) return;
+
+              stateLayers[stateName] = layer;
+              layer.bindTooltip(stateName, { sticky: true });
+
+              if (!stateData[stateName]) {
+                stateData[stateName] = {
+                  name: stateName,
+                  visited: stateName === HOME_STATE,
+                  note: "",
+                  places: [],
+                  isHome: stateName === HOME_STATE,
+                };
+              } else if (!Array.isArray(stateData[stateName].places)) {
+                // normalize older entry
+                stateData[stateName].places = [];
+              }
+
+              applyStyleForState(stateName);
+
+              layer.on("mouseover", function () {
+                this.setStyle({ weight: 2 });
+                this._path.style.cursor = "pointer";
+              });
+
+              layer.on("mouseout", function () {
+                applyStyleForState(stateName);
+              });
+
+              layer.on("click", () => {
+                openModalForState(stateName);
+              });
+            },
+          }).addTo(map);
+
+          updateSidebar();
+        } catch (err) {
+          console.error("Failed to load India GeoJSON", err);
+          alert("Could not load India map. Check internet connection (first load only).");
+        }
+      }
+
+      initApp();
+
+      // --- PWA SW registration ---
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./service-worker.js")
+            .catch((err) => console.error("SW registration failed:", err));
+        });
+      }
+
+      /* Sidebar open/close toggle — paste this before the Accessibility keydown handler */
+      (function () {
+        const sidebar = document.getElementById("sidebar");
+        const openBtn = document.getElementById("openSidebarBtn");
+        const closeBtn = document.getElementById("closeSidebarBtn");
+
+        if (!sidebar || !openBtn || !closeBtn) {
+          // If the DOM elements are missing, we just skip silently.
+          console.warn("Sidebar toggle: missing elements (sidebar/open/close).");
+          return;
+        }
+
+        // Restore saved state (true => closed)
+        const saved = localStorage.getItem("sidebarClosed");
+        const startClosed = saved === "true";
+
+        function applyClosedState(isClosed) {
+          if (isClosed) {
+            sidebar.classList.add("closed");
+            sidebar.setAttribute("aria-hidden", "true");
+            openBtn.setAttribute("aria-hidden", "false");
+            openBtn.style.display = "block";
+          } else {
+            sidebar.classList.remove("closed");
+            sidebar.setAttribute("aria-hidden", "false");
+            openBtn.setAttribute("aria-hidden", "true");
+            openBtn.style.display = "none";
+          }
+          localStorage.setItem("sidebarClosed", isClosed ? "true" : "false");
+        }
+
+        closeBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          applyClosedState(true);
+        });
+
+        openBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          applyClosedState(false);
+        });
+
+        // Also allow Esc to close the sidebar (when nothing else open)
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            // only close sidebar if no modal/gallery/video is active
+            const anyActive = videoPlayerBackdrop.classList.contains("active") ||
+              galleryBackdrop.classList.contains("active") ||
+              modalBackdrop.classList.contains("active");
+            if (!anyActive && !sidebar.classList.contains("closed")) {
+              applyClosedState(true);
+            }
+          }
+        });
+
+        // Initialize
+        applyClosedState(!!startClosed);
+
+        // debug API
+        window.appSidebar = {
+          open() { applyClosedState(false); },
+          close() { applyClosedState(true); },
+          toggle() { applyClosedState(!sidebar.classList.contains("closed")); }
+        };
+      })();
+
+
+      window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    if (videoPlayerBackdrop.classList.contains("active")) closeVideoPlayer();
+    else if (imageViewerBackdrop.classList.contains("active")) closeImageViewer();
+    else if (galleryBackdrop.classList.contains("active")) closeGallery();
+    else if (modalBackdrop.classList.contains("active")) closeModal();
+  }
+});
+
+    </script>
+  </body>
+</html>
