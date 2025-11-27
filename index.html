@@ -31,7 +31,6 @@
     />
 
     <style>
-      /* (your original CSS unchanged) */
       * {
         box-sizing: border-box;
         margin: 0;
@@ -354,48 +353,6 @@
         cursor: pointer;
       }
 
-      .video-tile {
-        width: 60px;
-        height: 60px;
-        border-radius: 10px;
-        border: 1px solid #1f2937;
-        background: radial-gradient(circle at top, #111827, #020617);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
-      }
-
-      .video-tile img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .video-tile-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        padding: 2px 4px;
-        font-size: 0.6rem;
-        color: #e5e7eb;
-      }
-
-      .video-tile-play {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
-      }
-
       .helper-info {
         font-size: 0.7rem;
         color: #6b7280;
@@ -485,8 +442,7 @@
         overflow: hidden;
       }
 
-      .gallery-main img,
-      .gallery-main video {
+      .gallery-main img {
         max-width: 100%;
         max-height: 100%;
         border-radius: 12px;
@@ -548,8 +504,7 @@
         border-color: #22c55e;
       }
 
-      .gallery-thumb img,
-      .gallery-thumb video {
+      .gallery-thumb img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -560,25 +515,26 @@
         color: #9ca3af;
       }
 
-      /* Single video player overlay */
-      .video-player-backdrop {
+      /* Image viewer overlay */
+      .image-viewer-backdrop {
         position: fixed;
         inset: 0;
         background: rgba(15, 23, 42, 0.85);
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 1200;
+        z-index: 1175;
         padding: 16px;
       }
 
-      .video-player-backdrop.active {
+      .image-viewer-backdrop.active {
         display: flex;
       }
 
-      .video-player {
+      .image-viewer {
         width: 100%;
         max-width: 720px;
+        max-height: 90vh;
         background: #020617;
         border-radius: 16px;
         border: 1px solid rgba(148, 163, 184, 0.5);
@@ -589,7 +545,7 @@
         gap: 6px;
       }
 
-      .video-player-header {
+      .image-viewer-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -597,13 +553,7 @@
         color: #e5e7eb;
       }
 
-      .video-player-title {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-
-      .video-player-main {
+      .image-viewer-main {
         border-radius: 12px;
         overflow: hidden;
         border: 1px solid #111827;
@@ -614,81 +564,19 @@
         min-height: 220px;
       }
 
-      .video-player-main video {
-        width: 100%;
-        max-height: 420px;
-        border-radius: 8px;
+      .image-viewer-main img {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
       }
 
-      .video-player-close {
+      .image-viewer-close {
         background: transparent;
         border: none;
         color: #9ca3af;
         font-size: 1.2rem;
         cursor: pointer;
       }
-.image-viewer-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1175;
-  padding: 16px;
-}
-
-.image-viewer-backdrop.active {
-  display: flex;
-}
-
-.image-viewer {
-  width: 100%;
-  max-width: 720px;
-  max-height: 90vh;
-  background: #020617;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.75);
-  padding: 10px 12px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.image-viewer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  color: #e5e7eb;
-}
-
-.image-viewer-main {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #111827;
-  background: #020617;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 220px;
-}
-
-.image-viewer-main img {
-  max-width: 100%;
-  max-height: 80vh;
-  object-fit: contain;
-}
-
-.image-viewer-close {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
-
 
       @media (max-width: 720px) {
         .sidebar {
@@ -703,91 +591,92 @@
           max-height: 480px;
         }
       }
-/* ===== collapsible sidebar overrides ===== */
-#sidebar, .sidebar {
-  position: fixed !important;
-  left: 0 !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  width: var(--sidebar-width, 280px) !important;
-  max-width: 90vw !important;
-  box-sizing: border-box !important;
-  transform: translateX(0) !important;
-  transition: transform 240ms ease, visibility 240ms ease, opacity 240ms ease !important;
-  z-index: 1040 !important;
-  overflow: hidden !important;
-  border-radius: 0 12px 12px 0 !important;
-  background-clip: padding-box;
-}
 
-/* Closed state slides fully off-screen left */
-#sidebar.closed, .sidebar.closed {
-  transform: translateX(calc(-1 * var(--sidebar-width, 280px))) !important;
-}
+      /* ===== collapsible sidebar overrides ===== */
+      #sidebar,
+      .sidebar {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: var(--sidebar-width, 280px) !important;
+        max-width: 90vw !important;
+        box-sizing: border-box !important;
+        transform: translateX(0) !important;
+        transition: transform 240ms ease, visibility 240ms ease,
+          opacity 240ms ease !important;
+        z-index: 1040 !important;
+        overflow: hidden !important;
+        border-radius: 0 12px 12px 0 !important;
+        background-clip: padding-box;
+      }
 
-/* Ensure no sidebar content is visible or interactive when closed */
-#sidebar.closed * {
-  visibility: hidden !important;
-  pointer-events: none !important;
-  user-select: none !important;
-}
+      #sidebar.closed,
+      .sidebar.closed {
+        transform: translateX(calc(-1 * var(--sidebar-width, 280px))) !important;
+      }
 
-/* Show the open button only when closed */
-#openSidebarBtn { display: none; }
-#sidebar.closed + #openSidebarBtn,
-#openSidebarBtn[aria-hidden="false"] {
-  display: block !important;
-}
+      #sidebar.closed * {
+        visibility: hidden !important;
+        pointer-events: none !important;
+        user-select: none !important;
+      }
 
-/* small style for header close button */
-.sidebar-close {
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 6px;
-  line-height: 1;
-}
-.sidebar-header {
-  position: relative;
-  padding-right: 32px;      /* ensures text doesn't overlap the X */
-}
+      #openSidebarBtn {
+        display: none;
+      }
+      #sidebar.closed + #openSidebarBtn,
+      #openSidebarBtn[aria-hidden="false"] {
+        display: block !important;
+      }
 
-.sidebar-close {
-  position: absolute !important;
-  top: 0;
-  right: 0;
-  padding: 4px 6px;
-  font-size: 18px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  line-height: 1;
-}
+      .sidebar-close {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        padding: 6px;
+        line-height: 1;
+      }
+      .sidebar-header {
+        position: relative;
+        padding-right: 32px;
+      }
 
-
+      .sidebar-close {
+        position: absolute !important;
+        top: 0;
+        right: 0;
+        padding: 4px 6px;
+        font-size: 18px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        line-height: 1;
+      }
     </style>
   </head>
 
   <body>
     <aside id="sidebar" class="sidebar">
-  <div class="sidebar-header">
-    <div>
-      <div class="sidebar-title">iLvZn Explores</div>
-      <div class="sidebar-sub" style="margin-top:4px;">
-        Click states on the map to mark them as visited, add notes, photos &amp;
-        videos.
-      </div>
-    </div>
+      <div class="sidebar-header">
+        <div>
+          <div class="sidebar-title">iLvZn Explores</div>
+          <div class="sidebar-sub" style="margin-top: 4px">
+            Click states on the map to mark them as visited, add notes &amp;
+            photos (per-place).
+          </div>
+        </div>
 
-    <!-- Close button inside the header (collapses sidebar) -->
-    <button
-      id="closeSidebarBtn"
-      class="sidebar-close"
-      aria-label="Close sidebar"
-    >✕</button>
-  </div>
-	
+        <button
+          id="closeSidebarBtn"
+          class="sidebar-close"
+          aria-label="Close sidebar"
+        >
+          ✕
+        </button>
+      </div>
+
       <!-- Google account box -->
       <div
         id="accountBox"
@@ -832,10 +721,11 @@
         <div id="visitedList" class="visited-list"></div>
 
         <div class="helper">
-          Tip: Photos & videos are now stored per-place inside a state. Click a place in the state modal to edit/view its media.
+          Tip: Photos are stored per-place inside a state. Click a place in the
+          state modal to edit/view its photos.
         </div>
 
-        <!-- NEW: Sync controls -->
+        <!-- Sync controls -->
         <div class="sync-controls" style="margin-top: 8px; font-size: 0.75rem">
           <div style="display: flex; gap: 6px; margin-bottom: 6px">
             <button
@@ -857,10 +747,33 @@
             Sign in to enable sync
           </div>
         </div>
-
-              </div>
+      </div>
     </aside>
-    <button id="openSidebarBtn" class="sidebar-open" aria-label="Open sidebar" aria-hidden="true" style="display:none; position:fixed; left:12px; top:12px; z-index:1060; width:44px; height:44px; border-radius:10px; border:0; box-shadow:0 6px 18px rgba(0,0,0,0.12); background:#0b1220; color:#fff; font-size:18px; cursor:pointer;">☰</button>
+
+    <button
+      id="openSidebarBtn"
+      class="sidebar-open"
+      aria-label="Open sidebar"
+      aria-hidden="true"
+      style="
+        display: none;
+        position: fixed;
+        left: 12px;
+        top: 12px;
+        z-index: 1060;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        border: 0;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        background: #0b1220;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+      "
+    >
+      ☰
+    </button>
 
     <div id="map"></div>
 
@@ -882,52 +795,84 @@
           <input type="checkbox" id="visitedCheckbox" />
           <span>Mark as visited</span>
         </div>
+
         <!-- PLACES SECTION -->
         <div class="field">
           <label for="placesList">Places in this state</label>
 
-          <div id="placesList" style="margin-bottom:8px;"></div>
+          <div id="placesList" style="margin-bottom: 8px"></div>
 
-          <div style="display:flex; gap:6px;">
+          <div style="display: flex; gap: 6px">
             <input
               id="newPlaceInput"
               placeholder="Add a place (e.g., Mathura, Vrindavan)"
               style="
-                flex:1;
-                padding:6px 8px;
-                border-radius:8px;
-                border:1px solid #374151;
-                background:#020617;
-                color:#e5e7eb;
+                flex: 1;
+                padding: 6px 8px;
+                border-radius: 8px;
+                border: 1px solid #374151;
+                background: #020617;
+                color: #e5e7eb;
               "
             />
-            <button id="addPlaceBtn" class="btn btn-ghost btn-small">Add</button>
+            <button id="addPlaceBtn" class="btn btn-ghost btn-small">
+              Add
+            </button>
           </div>
 
           <div class="helper-info">
             Add multiple places inside this state. Each place will have its
-            <strong>own photos/videos & notes</strong>.
+            <strong>own photos & notes</strong>.
           </div>
         </div>
         <!-- END PLACES SECTION -->
 
-        <!-- PLACE EDITOR (hidden by default) -->
-        <div id="placeEditor" style="display:none; margin-bottom:10px; border-top:1px dashed #1f2937; padding-top:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;">
-            <div style="font-weight:600;" id="placeEditorName">Place</div>
-            <div style="display:flex; gap:6px;">
-              <button id="closePlaceEditorBtn" class="btn btn-ghost btn-small">Close</button>
+        <!-- PLACE EDITOR -->
+        <div
+          id="placeEditor"
+          style="
+            display: none;
+            margin-bottom: 10px;
+            border-top: 1px dashed #1f2937;
+            padding-top: 10px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              gap: 8px;
+              margin-bottom: 6px;
+            "
+          >
+            <div style="font-weight: 600" id="placeEditorName">Place</div>
+            <div style="display: flex; gap: 6px">
+              <button
+                id="closePlaceEditorBtn"
+                class="btn btn-ghost btn-small"
+              >
+                Close
+              </button>
             </div>
           </div>
 
           <div class="field">
             <label for="placeNoteTextarea">Place notes</label>
-            <textarea id="placeNoteTextarea" placeholder="Memories at this place..."></textarea>
+            <textarea
+              id="placeNoteTextarea"
+              placeholder="Memories at this place..."
+            ></textarea>
           </div>
 
           <div class="field">
-            <label for="placeMediaInput">Add photos & videos to this place</label>
-            <input type="file" id="placeMediaInput" accept="image/*,video/*" multiple />
+            <label for="placeMediaInput">Add photos to this place</label>
+            <input
+              type="file"
+              id="placeMediaInput"
+              accept="image/*"
+              multiple
+            />
             <div id="placeUploadProgress" class="progress-text"></div>
           </div>
 
@@ -936,14 +881,24 @@
             <div id="placePhotosPreview" class="media-preview"></div>
           </div>
 
-          <div class="media-section">
-            <div class="media-section-title">Place Videos</div>
-            <div id="placeVideosPreview" class="media-preview"></div>
-          </div>
-
-          <div style="display:flex; gap:6px; justify-content:flex-end;">
-            <button id="deletePlaceBtn" class="btn btn-secondary btn-small" style="background:transparent;">Delete place</button>
-            <button id="savePlaceBtn" class="btn btn-primary btn-small">Save place</button>
+          <div
+            style="
+              display: flex;
+              gap: 6px;
+              justify-content: flex-end;
+              margin-top: 4px;
+            "
+          >
+            <button
+              id="deletePlaceBtn"
+              class="btn btn-secondary btn-small"
+              style="background: transparent"
+            >
+              Delete place
+            </button>
+            <button id="savePlaceBtn" class="btn btn-primary btn-small">
+              Save place
+            </button>
           </div>
         </div>
         <!-- END PLACE EDITOR -->
@@ -957,28 +912,27 @@
         </div>
 
         <div class="field">
-          <label for="mediaInput">Add photos & videos (state-level — will be moved into 'General' place)</label>
+          <label for="mediaInput"
+            >Add photos (state-level — will be moved into 'General' place)</label
+          >
           <input
             type="file"
             id="mediaInput"
-            accept="image/*,video/*"
+            accept="image/*"
             multiple
           />
           <div class="helper-info">
-            Photos are stored as images; videos are saved in small chunks with
-            thumbnails. Very large videos can still hit browser limits. Any files added here will be saved into a "General" place for this state.
+            Photos added here will be saved into a "General" place for this
+            state.
           </div>
           <div id="uploadProgress" class="progress-text"></div>
         </div>
 
         <div class="media-section">
-          <div class="media-section-title">Photos (state-level preview)</div>
+          <div class="media-section-title">
+            Photos (state-level preview, before save)
+          </div>
           <div id="photosPreview" class="media-preview"></div>
-        </div>
-
-        <div class="media-section">
-          <div class="media-section-title">Videos (state-level preview)</div>
-          <div id="videosPreview" class="media-preview"></div>
         </div>
 
         <div class="btn-row">
@@ -1002,9 +956,11 @@
       <div class="gallery">
         <div class="gallery-header">
           <div class="gallery-title">
-            <span class="gallery-title-main" id="galleryStateTitle">State / Place</span>
+            <span class="gallery-title-main" id="galleryStateTitle"
+              >State / Place</span
+            >
             <span class="gallery-title-sub" id="gallerySubtitle"
-              >Slideshow of photos & videos</span
+              >Slideshow of photos</span
             >
           </div>
           <button class="gallery-close-btn" id="galleryCloseBtn">
@@ -1030,40 +986,21 @@
       </div>
     </div>
 
-    <!-- Single Video Player -->
-    <div id="videoPlayerBackdrop" class="video-player-backdrop">
-      <div class="video-player">
-        <div class="video-player-header">
-          <div class="video-player-title">
-            <span id="videoPlayerTitle">Video</span>
-            <span
-              id="videoPlayerSub"
-              style="font-size: 0.75rem; color: #9ca3af"
-              >Playing selected video</span
-            >
-          </div>
-          <button class="video-player-close" id="videoPlayerCloseBtn">
-            &times;
-          </button>
+    <!-- Image Viewer -->
+    <div id="imageViewerBackdrop" class="image-viewer-backdrop">
+      <div class="image-viewer">
+        <div class="image-viewer-header">
+          <span id="imageViewerTitle">Photo</span>
+          <button
+            class="image-viewer-close"
+            id="imageViewerCloseBtn"
+          >&times;</button>
         </div>
-        <div class="video-player-main">
-          <video id="videoPlayerElement" controls playsinline></video>
+        <div class="image-viewer-main">
+          <img id="imageViewerImg" alt="Photo preview" />
         </div>
       </div>
     </div>
-<!-- Image Viewer -->
-<div id="imageViewerBackdrop" class="image-viewer-backdrop">
-  <div class="image-viewer">
-    <div class="image-viewer-header">
-      <span id="imageViewerTitle">Photo</span>
-      <button class="image-viewer-close" id="imageViewerCloseBtn">&times;</button>
-    </div>
-    <div class="image-viewer-main">
-      <img id="imageViewerImg" alt="Photo preview" />
-    </div>
-  </div>
-</div>
-
 
     <!-- Leaflet JS -->
     <script
@@ -1081,13 +1018,11 @@
       const DB_NAME = "india_travel_tracker_chunked_vthumb";
       const DB_VERSION = 2;
       const STORE_STATES = "states";
-      const STORE_CHUNKS = "videoChunks";
-      const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB
 
       // --- Google OAuth / Identity (Sign-in + Drive) ---
       const GOOGLE_CLIENT_ID =
         "789561466750-gtni93o3npjf6bm1tpnrvebaaavpf6be.apps.googleusercontent.com";
-      const DRIVE_SCOPES = "https://www.googleapis.com/auth/drive"; // broader scope (required for permissions API)
+      const DRIVE_SCOPES = "https://www.googleapis.com/auth/drive";
 
       let googleAccessToken = null;
       let googleUserEmail = null;
@@ -1097,10 +1032,6 @@
       let driveFolderId = null; // main folder: "iLvZn Explores Map"
       let driveMediaFolderId = null; // subfolder: "media"
 
-      /**
-       * Call Google Drive API (v3) with the current access token.
-       * path should start with "/" e.g. "/files?q=..."
-       */
       async function driveApiRequest(path, options = {}) {
         if (!googleAccessToken) {
           throw new Error("Not signed in with Google");
@@ -1122,10 +1053,6 @@
         return res.json();
       }
 
-      /**
-       * Ensure main folder "iLvZn Explores Map" exists in Drive.
-       * Returns its folder ID.
-       */
       async function ensureDriveFolder() {
         if (!googleAccessToken) throw new Error("Not signed in");
         if (driveFolderId) return driveFolderId;
@@ -1139,7 +1066,6 @@
         );
 
         if (data.files && data.files.length > 0) {
-          // pick most recent folder if multiple
           data.files.sort(
             (a, b) =>
               new Date(b.modifiedTime || 0) - new Date(a.modifiedTime || 0)
@@ -1176,9 +1102,6 @@
         return driveFolderId;
       }
 
-      /**
-       * Ensure "media" subfolder exists inside main folder.
-       */
       async function ensureDriveMediaFolder() {
         if (!googleAccessToken) throw new Error("Not signed in");
         if (driveMediaFolderId) return driveMediaFolderId;
@@ -1195,7 +1118,6 @@
         );
 
         if (data.files && data.files.length > 0) {
-          // pick most recent
           data.files.sort(
             (a, b) =>
               new Date(b.modifiedTime || 0) - new Date(a.modifiedTime || 0)
@@ -1233,9 +1155,6 @@
         return driveMediaFolderId;
       }
 
-      /**
-       * Convert a data URL (base64 image) to a Blob.
-       */
       function dataUrlToBlob(dataUrl) {
         const parts = dataUrl.split(",");
         const header = parts[0];
@@ -1253,10 +1172,6 @@
         return new Blob([arr], { type: mimeType });
       }
 
-      /**
-       * Upload a Blob to Drive in a parent folder.
-       * Returns fileId.
-       */
       async function uploadFileToDrive(parentFolderId, blob, name, mimeType) {
         if (!googleAccessToken) throw new Error("Not signed in with Google");
 
@@ -1321,54 +1236,48 @@
         return json.id;
       }
 
-      /**
-       * Download a file from Drive as Blob.
-       */
-      // safer download: supportsAllDrives + verify response before returning blob
-async function downloadDriveFileAsBlob(fileId) {
-  if (!googleAccessToken) throw new Error("Not signed in");
+      async function downloadDriveFileAsBlob(fileId) {
+        if (!googleAccessToken) throw new Error("Not signed in");
 
-  // include supportsAllDrives for shared-drive/other-account files
-  const url = "https://www.googleapis.com/drive/v3/files/" + encodeURIComponent(fileId) + "?alt=media&supportsAllDrives=true";
+        const url =
+          "https://www.googleapis.com/drive/v3/files/" +
+          encodeURIComponent(fileId) +
+          "?alt=media&supportsAllDrives=true";
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: "Bearer " + googleAccessToken,
-    },
-  });
+        const res = await fetch(url, {
+          headers: {
+            Authorization: "Bearer " + googleAccessToken,
+          },
+        });
 
-  // If drive returns error HTML, try to capture it and surface helpful debug
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("Download file error:", res.status, text);
-    throw new Error("Failed to download file from Drive: " + res.status);
-  }
+        if (!res.ok) {
+          const text = await res.text();
+          console.error("Download file error:", res.status, text);
+          throw new Error("Failed to download file from Drive: " + res.status);
+        }
 
-  // quick verification: content-type and content-length
-  const contentType = res.headers.get("Content-Type") || "";
-  const contentLength = parseInt(res.headers.get("Content-Length") || "0", 10);
+        const contentType = res.headers.get("Content-Type") || "";
+        const contentLength = parseInt(
+          res.headers.get("Content-Length") || "0",
+          10
+        );
 
-  const blob = await res.blob();
+        const blob = await res.blob();
 
-  // If response looks suspicious (tiny or wrong MIME), fail early
-  if (blob.size < 1000) {
-    // small file — likely an HTML error page or truncated upload
-    console.error("Downloaded blob is very small; possible error page or truncated upload.", { fileId, contentType, contentLength, size: blob.size });
-    throw new Error("Downloaded file looks invalid (too small) — check upload/permissions.");
-  }
+        if (blob.size < 1000 && !contentType.startsWith("application/json")) {
+          console.error(
+            "Downloaded blob is very small; possible error page or truncated upload.",
+            { fileId, contentType, contentLength, size: blob.size }
+          );
+          throw new Error("Downloaded file looks invalid (too small)");
+        }
 
-  // optional: if contentType doesn't look like video/* and not image/*
-  if (!contentType.startsWith("video/") && !contentType.startsWith("image/")) {
-    console.warn("Downloaded file Content-Type is", contentType, " — might still be valid, but check it.");
-  }
-
-  return blob;
-}
-
-
-      let db = null;
+        return blob;
+      }
 
       // --- IndexedDB helpers ---
+      let db = null;
+
       function openDb() {
         return new Promise((resolve, reject) => {
           if (db) return resolve(db);
@@ -1380,10 +1289,6 @@ async function downloadDriveFileAsBlob(fileId) {
 
             if (!upgradeDb.objectStoreNames.contains(STORE_STATES)) {
               upgradeDb.createObjectStore(STORE_STATES, { keyPath: "name" });
-            }
-
-            if (!upgradeDb.objectStoreNames.contains(STORE_CHUNKS)) {
-              upgradeDb.createObjectStore(STORE_CHUNKS, { keyPath: "key" });
             }
           };
 
@@ -1435,309 +1340,119 @@ async function downloadDriveFileAsBlob(fileId) {
         });
       }
 
-      function saveVideoChunk(mediaId, index, arrayBuffer) {
-        return openDb().then((database) => {
-          return new Promise((resolve, reject) => {
-            const tx = database.transaction(STORE_CHUNKS, "readwrite");
-            const store = tx.objectStore(STORE_CHUNKS);
-            const key = mediaId + "::" + index;
-            const record = { key, mediaId, index, data: arrayBuffer };
-            const req = store.put(record);
+      // --- Image thumbnail helper ---
+      function extractImageThumbnail(file, maxSize = 512) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
 
-            req.onsuccess = () => resolve();
-            req.onerror = () => reject(req.error);
-          });
-        });
-      }
+          img.onload = () => {
+            try {
+              const canvas = document.createElement("canvas");
+              let { width, height } = img;
+              const scale = Math.min(1, maxSize / Math.max(width, height));
+              width = Math.round(width * scale);
+              height = Math.round(height * scale);
 
-      function deleteVideoChunks(mediaId) {
-        return openDb().then((database) => {
-          return new Promise((resolve, reject) => {
-            const tx = database.transaction(STORE_CHUNKS, "readwrite");
-            const store = tx.objectStore(STORE_CHUNKS);
+              canvas.width = width;
+              canvas.height = height;
 
-            const lower = mediaId + "::";
-            const upper = mediaId + "::\uffff";
-            const range = IDBKeyRange.bound(lower, upper);
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
 
-            const req = store.openCursor(range);
-
-            req.onsuccess = (event) => {
-              const cursor = event.target.result;
-              if (cursor) {
-                cursor.delete();
-                cursor.continue();
-              } else {
-                resolve();
-              }
-            };
-
-            req.onerror = () => reject(req.error);
-          });
-        });
-      }
-
-      function loadVideoChunks(mediaId) {
-        return openDb().then((database) => {
-          return new Promise((resolve, reject) => {
-            const tx = database.transaction(STORE_CHUNKS, "readonly");
-            const store = tx.objectStore(STORE_CHUNKS);
-
-            const lower = mediaId + "::";
-            const upper = mediaId + "::\uffff";
-            const range = IDBKeyRange.bound(lower, upper);
-
-            const chunks = [];
-            const req = store.openCursor(range);
-
-            req.onsuccess = (event) => {
-              const cursor = event.target.result;
-              if (cursor) {
-                chunks.push(cursor.value);
-                cursor.continue();
-              } else {
-                chunks.sort((a, b) => a.index - b.index);
-                const buffers = chunks.map((c) => c.data);
-                resolve(buffers);
-              }
-            };
-
-            req.onerror = () => reject(req.error);
-          });
-        });
-      }
-
-      async function loadVideoBlob(mediaId) {
-        const buffers = await loadVideoChunks(mediaId);
-        if (!buffers.length) return null;
-        const blob = new Blob(buffers, { type: "video/mp4" });
-        return blob;
-      }
-// Resumable / robust downloader for Drive files.
-// Tries a normal fetch first, then falls back to range-chunk download if the response looks wrong.
-// Returns a Blob on success (or throws).
-async function downloadDriveFileAsBlob_resumable(fileId) {
-  if (!googleAccessToken) throw new Error("Not signed in");
-
-  const baseUrl =
-    "https://www.googleapis.com/drive/v3/files/" +
-    encodeURIComponent(fileId) +
-    "?alt=media&supportsAllDrives=true";
-
-  // 1) Try a normal fetch with retries
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      const res = await fetch(baseUrl, {
-        headers: { Authorization: "Bearer " + googleAccessToken },
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const blob = await res.blob();
-
-      // basic sanity: must be larger than small HTML error page
-      if (blob.size > 2048) return blob;
-
-      // if too small, fall through to ranged download attempt
-      console.warn("Downloaded blob small — will try ranged download", { fileId, size: blob.size });
-    } catch (err) {
-      console.warn("Attempt", attempt, "normal download failed for", fileId, err);
-      // small delay before retry
-      await new Promise((r) => setTimeout(r, 400 * attempt));
-    }
-  }
-
-  // 2) Fallback: ranged-chunk download and concat (useful for large files / flaky edges)
-  // We'll request in CHUNK_SIZE ranges and assemble into an array of ArrayBuffers.
-  const CHUNK = typeof CHUNK_SIZE === "number" ? CHUNK_SIZE : 4 * 1024 * 1024;
-  let chunks = [];
-  let offset = 0;
-  let totalSize = null;
-  const maxAttemptsPerChunk = 2;
-
-  // Probe with a small range request to try to learn total size (Content-Range)
-  try {
-    const probeRes = await fetch(baseUrl, {
-      method: "GET",
-      headers: {
-        Authorization: "Bearer " + googleAccessToken,
-        Range: "bytes=0-0",
-      },
-    });
-    if (probeRes.ok) {
-      const cr = probeRes.headers.get("Content-Range") || "";
-      const match = cr.match(/\/(\d+)$/);
-      if (match) totalSize = parseInt(match[1], 10);
-    }
-  } catch (e) {
-    console.warn("Probe request failed", e);
-  }
-
-  while (totalSize === null || offset < totalSize) {
-    const start = offset;
-    const end = offset + CHUNK - 1;
-    let attemptOK = false;
-
-    for (let attempt = 1; attempt <= maxAttemptsPerChunk; attempt++) {
-      try {
-        const r = await fetch(baseUrl, {
-          method: "GET",
-          headers: {
-            Authorization: "Bearer " + googleAccessToken,
-            Range: `bytes=${start}-${end}`,
-          },
-        });
-
-        if (r.status === 206 || r.status === 200) {
-          const ab = await r.arrayBuffer();
-          chunks.push(ab);
-
-          const cr = r.headers.get("Content-Range") || "";
-          const match = cr.match(/\/(\d+)$/);
-          if (match) totalSize = parseInt(match[1], 10);
-
-          offset += ab.byteLength;
-          attemptOK = true;
-          break;
-        } else if (r.status === 416) {
-          // Range not satisfiable => we've reached the end
-          attemptOK = true;
-          offset = totalSize || offset;
-          break;
-        } else {
-          throw new Error("Unexpected status " + r.status);
-        }
-      } catch (err) {
-        console.warn(`Chunk download attempt ${attempt} failed for ${fileId} at ${start}-${end}`, err);
-        await new Promise((r) => setTimeout(r, 300 * attempt));
-      }
-    }
-
-    if (!attemptOK) {
-      throw new Error("Failed to download chunk for file " + fileId + " at offset " + offset);
-    }
-
-    // If totalSize unknown and last chunk smaller than CHUNK, assume end reached
-    if (totalSize === null && chunks.length && chunks[chunks.length - 1].byteLength < CHUNK) {
-      totalSize = chunks.reduce((s, c) => s + c.byteLength, 0);
-      break;
-    }
-
-    if (totalSize !== null && offset >= totalSize) break;
-  }
-
-  const blob = new Blob(chunks, { type: "video/mp4" });
-  if (blob.size < 1024) throw new Error("Downloaded blob looks invalid after ranged download.");
-  return blob;
-}
-
-
-      async function saveVideoFileChunked(mediaId, file, progressCallback) {
-        const totalSize = file.size;
-        let offset = 0;
-        let index = 0;
-
-        while (offset < totalSize) {
-          const slice = file.slice(offset, offset + CHUNK_SIZE);
-          const arrayBuffer = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (ev) => resolve(ev.target.result);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsArrayBuffer(slice);
-          });
-
-          await saveVideoChunk(mediaId, index, arrayBuffer);
-
-          offset += CHUNK_SIZE;
-          index++;
-
-          if (progressCallback) progressCallback(Math.min(offset, totalSize), totalSize);
-
-          await new Promise((r) => setTimeout(r, 0));
-        }
-      }
-
-      // --- Extract first-frame video thumbnail ---
-      function extractVideoThumbnail(file) {
-        return new Promise((resolve, reject) => {
-          try {
-            const video = document.createElement("video");
-            const url = URL.createObjectURL(file);
-
-            video.src = url;
-            video.muted = true;
-            video.playsInline = true;
-
-            video.addEventListener("loadeddata", () => {
-              try {
-                const canvas = document.createElement("canvas");
-                const w = video.videoWidth || 320;
-                const h = video.videoHeight || 180;
-
-                canvas.width = w;
-                canvas.height = h;
-
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(video, 0, 0, w, h);
-
-                const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
-                URL.revokeObjectURL(url);
-                resolve(dataUrl);
-              } catch (e) {
-                URL.revokeObjectURL(url);
-                resolve(null);
-              }
-            });
-
-            video.onerror = () => {
+              const thumbDataUrl = canvas.toDataURL("image/jpeg", 0.6);
+              URL.revokeObjectURL(url);
+              resolve(thumbDataUrl);
+            } catch (e) {
               URL.revokeObjectURL(url);
               resolve(null);
-            };
-          } catch (e) {
+            }
+          };
+
+          img.onerror = () => {
+            URL.revokeObjectURL(url);
             resolve(null);
-          }
+          };
+
+          img.src = url;
         });
       }
-// --- Extract smaller image thumbnail ---
-function extractImageThumbnail(file, maxSize = 512) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-
-    img.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        let { width, height } = img;
-        const scale = Math.min(1, maxSize / Math.max(width, height));
-        width = Math.round(width * scale);
-        height = Math.round(height * scale);
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const thumbDataUrl = canvas.toDataURL("image/jpeg", 0.6);
-        URL.revokeObjectURL(url);
-        resolve(thumbDataUrl);
-      } catch (e) {
-        URL.revokeObjectURL(url);
-        resolve(null);
-      }
-    };
-
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      resolve(null);
-    };
-
-    img.src = url;
-  });
-}
-
 
       // --- In-memory state ---
       let stateData = {}; // name -> { name, visited, note, places:[], isHome }
       let stateLayers = {}; // name -> Leaflet layer
+
+      // Helpers to create unique ids
+      function makeId(prefix) {
+        return (
+          prefix +
+          "-" +
+          Date.now() +
+          "-" +
+          Math.random().toString(36).slice(2, 8)
+        );
+      }
+
+      async function loadStateDataFromDb() {
+        try {
+          const records = await getAllStatesFromDb();
+          stateData = {};
+
+          records.forEach((rec) => {
+            if (!rec || !rec.name) return;
+
+            // migrate older shape (rec.media) -> rec.places with General place
+            if (!Array.isArray(rec.places)) rec.places = [];
+            if (Array.isArray(rec.media) && rec.media.length > 0) {
+              const general = {
+                id: makeId("place"),
+                name: "General",
+                note: "",
+                // only keep images if any old entries had types
+                media: rec.media
+                  .filter((m) => !m.type || m.type === "image")
+                  .slice(),
+              };
+              if (rec.places.length === 0) rec.places = [general];
+              else rec.places.unshift(general);
+              rec.media = [];
+              try {
+                saveStateToDb(rec).catch(() => {});
+              } catch (e) {
+                console.warn("Migration persist failed", e);
+              }
+            }
+            if (!Array.isArray(rec.places)) rec.places = [];
+            // also strip non-image media inside places if any existed
+            rec.places = rec.places.map((p) => ({
+              ...p,
+              media: (p.media || []).filter((m) => !m.type || m.type === "image"),
+            }));
+            stateData[rec.name] = rec;
+          });
+        } catch (err) {
+          console.error("Failed to load states:", err);
+          stateData = {};
+        }
+
+        if (!stateData[HOME_STATE]) {
+          stateData[HOME_STATE] = {
+            name: HOME_STATE,
+            visited: true,
+            note: "",
+            places: [],
+            isHome: true,
+          };
+          await saveStateToDb(stateData[HOME_STATE]);
+        } else {
+          stateData[HOME_STATE].visited = true;
+          stateData[HOME_STATE].isHome = true;
+          if (!Array.isArray(stateData[HOME_STATE].places)) {
+            stateData[HOME_STATE].places = [];
+          }
+          await saveStateToDb(stateData[HOME_STATE]);
+        }
+      }
 
       // --- Map ---
       const map = L.map("map", {
@@ -1796,81 +1511,19 @@ function extractImageThumbnail(file, maxSize = 512) {
         }
       }
 
-      // Helpers to create unique ids
-      function makeId(prefix) {
-        return prefix + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
-      }
-
-      async function loadStateDataFromDb() {
-        try {
-          const records = await getAllStatesFromDb();
-          stateData = {};
-
-          records.forEach((rec) => {
-            if (!rec || !rec.name) return;
-            // migrate older shape (rec.media) -> rec.places with General place
-            if (!Array.isArray(rec.places)) rec.places = [];
-            if (Array.isArray(rec.media) && rec.media.length > 0) {
-              const general = {
-                id: makeId("place"),
-                name: "General",
-                note: "",
-                media: rec.media.slice(),
-              };
-              if (rec.places.length === 0) rec.places = [general];
-              else rec.places.unshift(general);
-              rec.media = [];
-              try {
-                // persist migrated record
-                saveStateToDb(rec).catch(() => {});
-              } catch (e) {
-                console.warn("Migration persist failed", e);
-              }
-            }
-            // normalize shape
-            if (!Array.isArray(rec.places)) rec.places = [];
-            stateData[rec.name] = rec;
-          });
-        } catch (err) {
-          console.error("Failed to load states:", err);
-          stateData = {};
-        }
-
-        if (!stateData[HOME_STATE]) {
-          stateData[HOME_STATE] = {
-            name: HOME_STATE,
-            visited: true,
-            note: "",
-            places: [],
-            isHome: true,
-          };
-          await saveStateToDb(stateData[HOME_STATE]);
-        } else {
-          stateData[HOME_STATE].visited = true;
-          stateData[HOME_STATE].isHome = true;
-          if (!Array.isArray(stateData[HOME_STATE].places)) {
-            stateData[HOME_STATE].places = [];
-          }
-          await saveStateToDb(stateData[HOME_STATE]);
-        }
-      }
-
       // --- Sidebar ---
       const visitedCountEl = document.getElementById("visitedCount");
       const visitedListEl = document.getElementById("visitedList");
       const visitedListCountEl = document.getElementById("visitedListCount");
       const filterBtns = document.querySelectorAll(".filter-btn");
 
-      // Google UI elements
       const googleSignInBtn = document.getElementById("googleSignInBtn");
       const accountStatusEl = document.getElementById("accountStatus");
 
-      // Sync UI elements (NEW)
       const backupToDriveBtn = document.getElementById("backupToDriveBtn");
       const restoreFromDriveBtn = document.getElementById("restoreFromDriveBtn");
       const syncStatusEl = document.getElementById("syncStatus");
 
-      
       let currentFilter = "all";
 
       function updateSyncButtons() {
@@ -1883,7 +1536,6 @@ function extractImageThumbnail(file, maxSize = 512) {
             : "Sign in to enable sync";
       }
 
-      
       function updateAccountStatus() {
         if (!googleAccessToken || !googleUserEmail) {
           accountStatusEl.textContent = "Not signed in · sync disabled";
@@ -1891,7 +1543,6 @@ function extractImageThumbnail(file, maxSize = 512) {
           accountStatusEl.textContent = "Signed in with Google";
         }
         updateSyncButtons();
-        
       }
 
       updateAccountStatus();
@@ -1924,7 +1575,6 @@ function extractImageThumbnail(file, maxSize = 512) {
           alert("Google sign-in not ready yet. Try again in a moment.");
           return;
         }
-        // Force consent to ensure new scope is requested if needed
         googleTokenClient.requestAccessToken({ prompt: "consent" });
       });
 
@@ -1961,14 +1611,16 @@ function extractImageThumbnail(file, maxSize = 512) {
             const entry = stateData[stateName];
             const hasNote =
               entry && entry.note && entry.note.trim().length > 0;
-            // hasMedia = any place with media
+
             const hasMedia =
               entry &&
               Array.isArray(entry.places) &&
-              entry.places.some((p) => Array.isArray(p.media) && p.media.length > 0);
+              entry.places.some(
+                (p) => Array.isArray(p.media) && p.media.length > 0
+              );
 
-            if (hasMedia && hasNote) badge.textContent = "Note + Media";
-            else if (hasMedia) badge.textContent = "Media";
+            if (hasMedia && hasNote) badge.textContent = "Note + Photos";
+            else if (hasMedia) badge.textContent = "Photos";
             else if (hasNote) badge.textContent = "Note";
             else badge.textContent = "Visited";
           }
@@ -2009,7 +1661,7 @@ function extractImageThumbnail(file, maxSize = 512) {
         });
       });
 
-      // --- Modal elements & media ---
+      // --- Modal elements ---
       const modalBackdrop = document.getElementById("stateModalBackdrop");
       const modalStateNameEl = document.getElementById("modalStateName");
       const homeBadgeEl = document.getElementById("homeBadge");
@@ -2017,189 +1669,69 @@ function extractImageThumbnail(file, maxSize = 512) {
       const noteTextarea = document.getElementById("noteTextarea");
       const mediaInput = document.getElementById("mediaInput");
       const photosPreview = document.getElementById("photosPreview");
-      const videosPreview = document.getElementById("videosPreview");
       const uploadProgressEl = document.getElementById("uploadProgress");
       const saveStateBtn = document.getElementById("saveStateBtn");
       const clearStateBtn = document.getElementById("clearStateBtn");
       const modalCloseBtn = document.getElementById("modalCloseBtn");
       const openGalleryBtn = document.getElementById("openGalleryBtn");
 
-      // Place editor elements
+      const placesListEl = document.getElementById("placesList");
+      const newPlaceInput = document.getElementById("newPlaceInput");
+      const addPlaceBtn = document.getElementById("addPlaceBtn");
+
       const placeEditor = document.getElementById("placeEditor");
       const placeEditorNameEl = document.getElementById("placeEditorName");
       const placeNoteTextarea = document.getElementById("placeNoteTextarea");
       const placeMediaInput = document.getElementById("placeMediaInput");
       const placePhotosPreview = document.getElementById("placePhotosPreview");
-      const placeVideosPreview = document.getElementById("placeVideosPreview");
-      const placeUploadProgressEl = document.getElementById("placeUploadProgress");
+      const placeUploadProgressEl =
+        document.getElementById("placeUploadProgress");
       const savePlaceBtn = document.getElementById("savePlaceBtn");
       const deletePlaceBtn = document.getElementById("deletePlaceBtn");
-      const closePlaceEditorBtn = document.getElementById("closePlaceEditorBtn");
+      const closePlaceEditorBtn =
+        document.getElementById("closePlaceEditorBtn");
 
       let currentStateName = null;
-      let currentImages = []; // {id?, type:'image', src, driveFileId?} (temp state modal uploads -> moved to General place on save)
-      let existingVideosMeta = []; // used for legacy entries (temporary)
-      let newVideos = []; // temporary videos added via state modal
-      let activePlaceId = null; // currently editing place
+      let currentImages = []; // state-level temp images before save
+      let activePlaceId = null;
 
-      function renderMediaPreview() {
-        photosPreview.innerHTML = "";
-        videosPreview.innerHTML = "";
-
-        currentImages.forEach((imgItem) => {
-  const img = document.createElement("img");
-  img.src = imgItem.src;
-  img.className = "media-thumb";
-  img.title = "Photo";
-
-  img.addEventListener("click", () => {
-    openImageViewer(imgItem.src, currentStateName || "Photo");
-  });
-
-  photosPreview.appendChild(img);
-});
-
-
-        const videoItems = [
-          ...existingVideosMeta.map((v) => ({ ...v, source: "existing" })),
-          ...newVideos.map((v) => ({ ...v, source: "new" })),
-        ];
-
-        videoItems.forEach((item) => {
-          const tile = document.createElement("div");
-          tile.className = "video-tile";
-
-          if (item.thumb) {
-            const thumbImg = document.createElement("img");
-            thumbImg.src = item.thumb;
-            tile.appendChild(thumbImg);
-          }
-
-          const overlay = document.createElement("div");
-          overlay.className = "video-tile-overlay";
-          const sizeMb = (item.size / (1024 * 1024)).toFixed(1);
-          overlay.textContent = sizeMb + " MB";
-          tile.appendChild(overlay);
-
-          const playIcon = document.createElement("div");
-          playIcon.className = "video-tile-play";
-          playIcon.textContent = "▶";
-          tile.appendChild(playIcon);
-
-          tile.addEventListener("click", () => {
-  playSingleVideo({
-    source: "existing",
-    id: m.id,
-    driveFileId: m.driveFileId || null
-  });
-});
-
-
-          videosPreview.appendChild(tile);
-        });
-
-        const totalVideos = existingVideosMeta.length + newVideos.length;
-        openGalleryBtn.disabled = currentImages.length + totalVideos === 0;
-        openGalleryBtn.style.opacity = openGalleryBtn.disabled ? "0.5" : "1";
-      }
-
-      mediaInput.addEventListener("change", async (e) => {
-        const files = Array.from(e.target.files || []);
-        if (!files.length) return;
-
-        uploadProgressEl.textContent = "Preparing files…";
-
-        for (const file of files) {
-          if (file.type.startsWith("image/")) {
-            const dataUrl = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = (ev) => resolve(ev.target.result);
-              reader.onerror = () => reject(reader.error);
-              reader.readAsDataURL(file);
-            });
-            currentImages.push({ type: "image", src: dataUrl });
-          } else if (file.type.startsWith("video/")) {
-            const thumb = await extractVideoThumbnail(file);
-            newVideos.push({
-              tempId:
-                Date.now().toString(10) +
-                "-" +
-                Math.random().toString(36).slice(2),
-              file,
-              size: file.size,
-              thumb: thumb,
-            });
-          }
-        }
-
-        uploadProgressEl.textContent = "";
-        renderMediaPreview();
-      });
-
-      function openModalForState(name) {
-        currentStateName = name;
-        modalStateNameEl.textContent = name;
-
-        const entry =
-          stateData[name] || {
+      function ensureStatePlacesShape(name) {
+        if (!stateData[name])
+          stateData[name] = {
             name,
             visited: name === HOME_STATE,
             note: "",
             places: [],
             isHome: name === HOME_STATE,
           };
-
-        visitedCheckbox.checked = entry.visited || name === HOME_STATE;
-        noteTextarea.value = entry.note || "";
-        homeBadgeEl.style.display = name === HOME_STATE ? "inline-flex" : "none";
-
-        // Clear temporary modal-level previews: state-level media is now stored in places.
-        currentImages = [];
-        existingVideosMeta = [];
-        newVideos = [];
-
-        mediaInput.value = "";
-        uploadProgressEl.textContent = "";
-        renderMediaPreview();
-
-        // Hide place editor initially and render the places list
-        activePlaceId = null;
-        placeEditor.style.display = "none";
-        renderPlacesListForModal(name);
-
-        modalBackdrop.classList.add("active");
-      }
-
-      /* ===== Places per state: data model & UI helpers ===== */
-
-      /**
-       * Ensure the state record shape includes .places array
-       * Example stateData[stateName] = { name, visited, note, isHome, places: [{id,name,note,media:[]}] }
-       */
-      function ensureStatePlacesShape(name) {
-        if (!stateData[name]) stateData[name] = { name, visited: name === HOME_STATE, note: "", places: [], isHome: name === HOME_STATE };
         if (!Array.isArray(stateData[name].places)) {
-          // migrate legacy 'media' into default 'General' place if present
-          const legacyMedia = Array.isArray(stateData[name].media) ? stateData[name].media : [];
+          const legacyMedia = Array.isArray(stateData[name].media)
+            ? stateData[name].media
+            : [];
+          const onlyImages = legacyMedia.filter(
+            (m) => !m.type || m.type === "image"
+          );
           stateData[name].places = [];
-          if (legacyMedia.length) {
+          if (onlyImages.length) {
             stateData[name].places.push({
               id: makeId("place"),
               name: "General",
               note: "",
-              media: legacyMedia.slice(),
+              media: onlyImages.slice(),
             });
           }
-          // remove top-level media to avoid duplication
           stateData[name].media = [];
         }
+
+        stateData[name].places = stateData[name].places.map((p) => ({
+          ...p,
+          media: (p.media || []).filter((m) => !m.type || m.type === "image"),
+        }));
       }
 
-      /* Render places list inside the modal */
       function renderPlacesListForModal(name) {
         ensureStatePlacesShape(name);
-        const placesList = document.getElementById("placesList");
-        placesList.innerHTML = "";
+        placesListEl.innerHTML = "";
 
         const places = stateData[name].places || [];
         if (!places.length) {
@@ -2207,7 +1739,7 @@ function extractImageThumbnail(file, maxSize = 512) {
           el.style.color = "#9ca3af";
           el.style.fontSize = "0.85rem";
           el.textContent = "No places yet. Add a place above (e.g. Mathura)";
-          placesList.appendChild(el);
+          placesListEl.appendChild(el);
           return;
         }
 
@@ -2231,219 +1763,153 @@ function extractImageThumbnail(file, maxSize = 512) {
           const count = document.createElement("span");
           count.className = "badge";
           const mediaCount = Array.isArray(p.media) ? p.media.length : 0;
-          count.textContent = mediaCount ? mediaCount + " media" : "empty";
+          count.textContent = mediaCount ? mediaCount + " photos" : "empty";
 
           left.appendChild(title);
           row.appendChild(left);
           row.appendChild(count);
 
-          // open place editor on click
           row.addEventListener("click", () => {
             openPlaceEditor(name, p.id);
           });
 
-          placesList.appendChild(row);
+          placesListEl.appendChild(row);
         });
       }
 
-      /* Add new place to current state (from modal) */
-      document.getElementById("addPlaceBtn").addEventListener("click", () => {
-        const placeName = (document.getElementById("newPlaceInput").value || "").trim();
-        if (!placeName) return;
-        if (!currentStateName) return;
+      addPlaceBtn.addEventListener("click", () => {
+        const placeName = (newPlaceInput.value || "").trim();
+        if (!placeName || !currentStateName) return;
 
         ensureStatePlacesShape(currentStateName);
         const id = makeId("place");
         const newPlace = { id, name: placeName, note: "", media: [] };
         stateData[currentStateName].places.unshift(newPlace);
-        saveStateToDb(stateData[currentStateName]).then(() => {
-          document.getElementById("newPlaceInput").value = "";
-          renderPlacesListForModal(currentStateName);
-          updateSidebar();
-        }).catch(err => console.error("save place failed", err));
+        saveStateToDb(stateData[currentStateName])
+          .then(() => {
+            newPlaceInput.value = "";
+            renderPlacesListForModal(currentStateName);
+            updateSidebar();
+          })
+          .catch((err) => console.error("save place failed", err));
       });
 
-      /* Place editor: open */
       function openPlaceEditor(stateName, placeId) {
         if (!stateName || !placeId) return;
         currentStateName = stateName;
         ensureStatePlacesShape(stateName);
-        const place = (stateData[stateName].places || []).find(p => p.id === placeId);
+        const place = (stateData[stateName].places || []).find(
+          (p) => p.id === placeId
+        );
         if (!place) return;
 
         activePlaceId = placeId;
         placeEditor.style.display = "block";
         placeEditorNameEl.textContent = place.name;
         placeNoteTextarea.value = place.note || "";
-
-        // populate previews
         renderPlaceMediaPreviews(place);
       }
 
-      /* Close place editor */
-      closePlaceEditorBtn.addEventListener("click", () => {
+      function closePlaceEditor() {
         activePlaceId = null;
         placeEditor.style.display = "none";
-      });
+      }
 
-      /* Render place media previews */
+      closePlaceEditorBtn.addEventListener("click", closePlaceEditor);
+
       function renderPlaceMediaPreviews(place) {
         placePhotosPreview.innerHTML = "";
-        placeVideosPreview.innerHTML = "";
 
-        (place.media || []).forEach(m => {
-          if (m.type === "image") {
-  const img = document.createElement("img");
-  img.src = m.src;
-  img.className = "media-thumb";
+        (place.media || [])
+          .filter((m) => !m.type || m.type === "image")
+          .forEach((m) => {
+            const img = document.createElement("img");
+            img.src = m.src;
+            img.className = "media-thumb";
 
-  img.addEventListener("click", () => {
-    const title = (currentStateName || "Photo") + (place.name ? " – " + place.name : "");
-    openImageViewer(m.src, title);
-  });
-
-  placePhotosPreview.appendChild(img);
-}
- else if (m.type === "video") {
-            const tile = document.createElement("div");
-            tile.className = "video-tile";
-            if (m.thumb) {
-              const t = document.createElement("img");
-              t.src = m.thumb;
-              tile.appendChild(t);
-            }
-            const overlay = document.createElement("div");
-            overlay.className = "video-tile-overlay";
-            overlay.textContent = ((m.size || 0)/(1024*1024)).toFixed(1) + " MB";
-            tile.appendChild(overlay);
-            const playIcon = document.createElement("div");
-            playIcon.className = "video-tile-play";
-            playIcon.textContent = "▶";
-            tile.appendChild(playIcon);
-
-            tile.addEventListener("click", () => {
-              playSingleVideo({ source: "existing", id: m.id });
+            img.addEventListener("click", () => {
+              const title =
+                (currentStateName || "Photo") +
+                (place.name ? " – " + place.name : "");
+              openImageViewer(m.src, title);
             });
 
-            placeVideosPreview.appendChild(tile);
+            placePhotosPreview.appendChild(img);
+          });
+      }
+
+      placeMediaInput.addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length || !currentStateName || !activePlaceId) return;
+
+        const place = (stateData[currentStateName].places || []).find(
+          (p) => p.id === activePlaceId
+        );
+        if (!place) return;
+
+        placeUploadProgressEl.textContent = "Preparing photos…";
+
+        for (const file of files) {
+          if (!file.type.startsWith("image/")) continue;
+
+          const thumb = await extractImageThumbnail(file);
+          let driveFileId = null;
+          const mediaId = makeId("media");
+
+          if (googleAccessToken) {
+            try {
+              placeUploadProgressEl.textContent = "Uploading to Drive…";
+              const mediaFolder = await ensureDriveMediaFolder();
+              const fname = `${
+                currentStateName || "State"
+              }-${place.name || "place"}-img-${Date.now()}-${Math.random()
+                .toString(36)
+                .slice(2)}.jpg`;
+              driveFileId = await uploadFileToDrive(
+                mediaFolder,
+                file,
+                fname,
+                file.type || "image/jpeg"
+              );
+            } catch (err) {
+              console.warn(
+                "Drive upload failed for image, keeping only local thumb:",
+                err
+              );
+            }
           }
-        });
-      }
-placeMediaInput.addEventListener("change", async (e) => {
-  const files = Array.from(e.target.files || []);
-  if (!files.length || !currentStateName || !activePlaceId) return;
 
-  const place = (stateData[currentStateName].places || []).find(p => p.id === activePlaceId);
-  if (!place) return;
-
-  placeUploadProgressEl.textContent = "Preparing files…";
-
-  for (const file of files) {
-    // IMAGES
-    if (file.type.startsWith("image/")) {
-      // create smaller thumbnail for local preview
-      const thumb = await extractImageThumbnail(file);
-      let driveFileId = null;
-      const mediaId = makeId("media");
-
-      if (googleAccessToken) {
-        try {
-          const mediaFolder = await ensureDriveMediaFolder();
-          const fname = `${currentStateName || "State"}-${place.name || "place"}-img-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-          // upload full image to Drive
-          driveFileId = await uploadFileToDrive(mediaFolder, file, fname, file.type || "image/jpeg");
-        } catch (err) {
-          console.warn("Drive upload failed for image, keeping only local thumb:", err);
+          place.media.push({
+            id: mediaId,
+            type: "image",
+            src: thumb || null,
+            thumb: thumb || null,
+            driveFileId: driveFileId || null,
+            size: file.size || 0,
+          });
         }
-      }
 
-      // store only thumbnail locally (as src) + driveFileId
-      place.media.push({
-        id: mediaId,
-        type: "image",
-        src: thumb || null,   // used for previews
-        thumb: thumb || null,
-        driveFileId: driveFileId || null,
-        size: file.size || 0
+        await saveStateToDb(stateData[currentStateName]);
+        placeUploadProgressEl.textContent = "";
+        renderPlaceMediaPreviews(place);
+        renderPlacesListForModal(currentStateName);
+        updateSidebar();
+        e.target.value = "";
       });
 
-    // VIDEOS
-    } else if (file.type.startsWith("video/")) {
-      const thumb = await extractVideoThumbnail(file);
-      let driveFileId = null;
-      const mediaId = makeId("media");
-
-      if (googleAccessToken) {
-        try {
-          placeUploadProgressEl.textContent = "Uploading video to Drive…";
-          const mediaFolder = await ensureDriveMediaFolder();
-          const fname = `${currentStateName || "State"}-${place.name || "place"}-vid-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`;
-
-          driveFileId = await uploadVideoFileToDrive(
-            mediaFolder,
-            file,
-            fname,
-            (done, total) => {
-              placeUploadProgressEl.textContent = `Uploading to Drive… ${((done / total) * 100).toFixed(0)}%`;
-            }
-          );
-        } catch (err) {
-          console.warn("Drive upload failed for video. Falling back to local chunked storage:", err);
-        }
-      }
-
-      if (driveFileId) {
-        // ✅ Drive-only: no local chunked storage required
-        place.media.push({
-          id: mediaId,
-          type: "video",
-          size: file.size || 0,
-          chunked: false,
-          thumb: thumb || null,
-          driveFileId: driveFileId
-        });
-      } else {
-        // ❗ Fallback when user not signed in or upload fails: old local behavior
-        await saveVideoFileChunked(mediaId, file, (done, total) => {
-          placeUploadProgressEl.textContent = `Uploading locally… ${((done / total) * 100).toFixed(0)}%`;
-        });
-
-        place.media.push({
-          id: mediaId,
-          type: "video",
-          size: file.size || 0,
-          chunked: true,
-          thumb: thumb || null,
-          driveFileId: null
-        });
-      }
-    }
-  }
-
-  // persist
-  await saveStateToDb(stateData[currentStateName]);
-  placeUploadProgressEl.textContent = "";
-  renderPlaceMediaPreviews(place);
-  renderPlacesListForModal(currentStateName);
-  updateSidebar();
-  e.target.value = "";
-});
-
-
-            /* Delete place */
       deletePlaceBtn.addEventListener("click", async () => {
         if (!currentStateName || !activePlaceId) return;
-        if (!confirm("Delete this place and its local media? This cannot be undone.")) return;
+        if (
+          !confirm(
+            "Delete this place and its local photos? This cannot be undone."
+          )
+        )
+          return;
+
         const places = stateData[currentStateName].places || [];
-        const idx = places.findIndex(p => p.id === activePlaceId);
+        const idx = places.findIndex((p) => p.id === activePlaceId);
         if (idx === -1) return;
-        const place = places[idx];
-        // remove any chunked videos from IDB
-        for (const m of place.media || []) {
-          if (m.type === "video" && m.id) {
-            try { await deleteVideoChunks(m.id); } catch(e){ console.warn("failed to delete chunks", e); }
-          }
-        }
+
         places.splice(idx, 1);
         await saveStateToDb(stateData[currentStateName]);
         activePlaceId = null;
@@ -2452,99 +1918,135 @@ placeMediaInput.addEventListener("change", async (e) => {
         updateSidebar();
       });
 
+      // --- Image viewer ---
+      const imageViewerBackdrop =
+        document.getElementById("imageViewerBackdrop");
+      const imageViewerTitleEl = document.getElementById("imageViewerTitle");
+      const imageViewerImgEl = document.getElementById("imageViewerImg");
+      const imageViewerCloseBtn =
+        document.getElementById("imageViewerCloseBtn");
+
+      function openImageViewer(src, title) {
+        if (!src) return;
+        imageViewerImgEl.src = src;
+        imageViewerTitleEl.textContent = title || "Photo";
+        imageViewerBackdrop.classList.add("active");
+      }
+
+      function closeImageViewer() {
+        imageViewerImgEl.src = "";
+        imageViewerBackdrop.classList.remove("active");
+      }
+
+      imageViewerCloseBtn.addEventListener("click", closeImageViewer);
+      imageViewerBackdrop.addEventListener("click", (e) => {
+        if (e.target === imageViewerBackdrop) closeImageViewer();
+      });
+
+      // --- State-level media preview (photos only) ---
+      function renderMediaPreview() {
+        photosPreview.innerHTML = "";
+
+        currentImages.forEach((imgItem) => {
+          const img = document.createElement("img");
+          img.src = imgItem.src;
+          img.className = "media-thumb";
+          img.title = "Photo";
+
+          img.addEventListener("click", () => {
+            openImageViewer(imgItem.src, currentStateName || "Photo");
+          });
+
+          photosPreview.appendChild(img);
+        });
+
+        openGalleryBtn.disabled = currentImages.length === 0;
+        openGalleryBtn.style.opacity = openGalleryBtn.disabled ? "0.5" : "1";
+      }
+
+      mediaInput.addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+
+        uploadProgressEl.textContent = "Preparing photos…";
+
+        for (const file of files) {
+          if (!file.type.startsWith("image/")) continue;
+
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => resolve(ev.target.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          });
+          currentImages.push({ type: "image", src: dataUrl });
+        }
+
+        uploadProgressEl.textContent = "";
+        renderMediaPreview();
+      });
+
+      function openModalForState(name) {
+        currentStateName = name;
+        modalStateNameEl.textContent = name;
+
+        const entry =
+          stateData[name] || {
+            name,
+            visited: name === HOME_STATE,
+            note: "",
+            places: [],
+            isHome: name === HOME_STATE,
+          };
+
+        visitedCheckbox.checked = entry.visited || name === HOME_STATE;
+        noteTextarea.value = entry.note || "";
+        homeBadgeEl.style.display =
+          name === HOME_STATE ? "inline-flex" : "none";
+
+        currentImages = [];
+        mediaInput.value = "";
+        uploadProgressEl.textContent = "";
+        renderMediaPreview();
+
+        activePlaceId = null;
+        placeEditor.style.display = "none";
+        renderPlacesListForModal(name);
+
+        modalBackdrop.classList.add("active");
+      }
+
       function closeModal() {
         modalBackdrop.classList.remove("active");
         currentStateName = null;
         currentImages = [];
-        existingVideosMeta = [];
-        newVideos = [];
         uploadProgressEl.textContent = "";
         activePlaceId = null;
         placeEditor.style.display = "none";
       }
 
-      // --- Drive helpers for sync (NEW) ---
+      modalCloseBtn.addEventListener("click", closeModal);
+      modalBackdrop.addEventListener("click", (e) => {
+        if (e.target === modalBackdrop) closeModal();
+      });
+
+      // --- Drive helpers for image backup/restore ---
       async function uploadImageToDrive(parentFolderId, dataUrl, name) {
         try {
           const blob = dataUrlToBlob(dataUrl);
-          return await uploadFileToDrive(parentFolderId, blob, name, blob.type);
+          return await uploadFileToDrive(
+            parentFolderId,
+            blob,
+            name,
+            blob.type
+          );
         } catch (e) {
           console.error("uploadImageToDrive failed:", e);
           return null;
         }
       }
 
-      // Resumable upload for large video files
-async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallback) {
-  if (!googleAccessToken) throw new Error("Not signed in with Google");
-
-  // 1) Start Drive resumable session
-  const initRes = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable",
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + googleAccessToken,
-        "Content-Type": "application/json; charset=UTF-8",
-        "X-Upload-Content-Type": file.type || "application/octet-stream",
-        "X-Upload-Content-Length": String(file.size)
-      },
-      body: JSON.stringify({
-        name,
-        parents: parentFolderId ? [parentFolderId] : undefined
-      })
-    }
-  );
-
-  if (!initRes.ok) {
-    const t = await initRes.text();
-    throw new Error("Resumable init failed: " + t);
-  }
-
-  const uploadUrl = initRes.headers.get("Location");
-  if (!uploadUrl) throw new Error("No upload URL returned");
-
-  // 2) Upload in chunks
-  const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB
-  let offset = 0;
-  const total = file.size;
-
-  while (offset < total) {
-    const end = Math.min(offset + CHUNK_SIZE, total) - 1;
-    const chunk = file.slice(offset, end + 1);
-
-    const res = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        Authorization: "Bearer " + googleAccessToken,
-        "Content-Type": file.type,
-        "Content-Range": `bytes ${offset}-${end}/${total}`
-      },
-      body: chunk
-    });
-
-    if (res.status === 308) {
-      offset = end + 1;
-      if (progressCallback) progressCallback(offset, total);
-      continue;
-    }
-
-    if (res.ok) {
-      const json = await res.json();
-      if (!json.id) throw new Error("Upload finished but no fileId returned");
-      if (progressCallback) progressCallback(total, total);
-      return json.id;
-    }
-
-    const t = await res.text();
-    throw new Error("Chunk upload failed: " + res.status + " " + t);
-  }
-
-  throw new Error("Unexpected end of resumable upload");
-}
-
-
-      // Save handler modified to upload images & attempt video upload (best-effort)
+      // Save state (photos only)
       saveStateBtn.addEventListener("click", async () => {
         if (!currentStateName) return;
         saveStateBtn.disabled = true;
@@ -2568,95 +2070,36 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
         entry.isHome = name === HOME_STATE;
         entry.note = noteTextarea.value.trim();
 
-        // ensure places shape exists
         ensureStatePlacesShape(name);
 
-        // Ensure a "General" place exists to collect top-level media (if user used top-level mediaInput)
-        let generalPlace = (entry.places || []).find(p => p.name === "General");
+        let generalPlace = (entry.places || []).find((p) => p.name === "General");
         if (!generalPlace) {
-          generalPlace = { id: makeId("place"), name: "General", note: "", media: [] };
+          generalPlace = {
+            id: makeId("place"),
+            name: "General",
+            note: "",
+            media: [],
+          };
           entry.places.unshift(generalPlace);
         }
 
-        // Move any top-level currentImages (from modal-level mediaInput) into General place
+        // Move currentImages into General
         for (let idx = 0; idx < currentImages.length; idx++) {
           const img = currentImages[idx];
-          const mediaId = img.id || (name + "-img-" + Date.now() + "-" + idx + "-" + Math.random().toString(36).slice(2));
+          const mediaId =
+            img.id ||
+            `${name}-img-${Date.now()}-${idx}-${Math.random()
+              .toString(36)
+              .slice(2)}`;
           generalPlace.media.push({
             id: mediaId,
             type: "image",
             src: img.src,
-            driveFileId: img.driveFileId || null
+            driveFileId: img.driveFileId || null,
           });
         }
 
-        // Move newly added videos (newVideos) into General place: save chunked and add metadata
         try {
-          let processedSize = 0;
-          const totalNewVideosSize = newVideos.reduce((s, v) => s + (v.size || 0), 0);
-
-          const updateProgress = (done, total) => {
-            const mbDone = ((processedSize + done) / (1024 * 1024)).toFixed(1);
-            const mbTotal = ((totalNewVideosSize || 1) / (1024 * 1024)).toFixed(1);
-            uploadProgressEl.textContent = `Uploading videos… ${mbDone} / ${mbTotal} MB`;
-          };
-
-          for (let i = 0; i < newVideos.length; i++) {
-            const video = newVideos[i];
-            const mediaId = video.tempId || (name + "-vid-" + Date.now() + "-" + i + "-" + Math.random().toString(36).slice(2));
-
-            // Save chunked locally
-            await saveVideoFileChunked(mediaId, video.file, (done, total) => {
-              updateProgress(done, total);
-            });
-
-            processedSize += video.size || 0;
-
-            // Best-effort: attempt Drive upload for original file (may fail for large files)
-            let driveFileId = null;
-            if (googleAccessToken) {
-              try {
-                const mediaFolder = await ensureDriveMediaFolder();
-                const fname = name + "-video-" + Date.now() + "-" + i + ".mp4";
-                const uploadedId = await uploadVideoFileToDrive(mediaFolder, video.file, fname);
-                if (uploadedId) driveFileId = uploadedId;
-              } catch (e) {
-                console.warn("Video upload to Drive failed (will keep local chunk):", e);
-              }
-            }
-
-            generalPlace.media.push({
-              id: mediaId,
-              type: "video",
-              size: video.size || 0,
-              chunked: true,
-              thumb: video.thumb || null,
-              driveFileId: driveFileId
-            });
-          }
-
-          // Preserve existing videos that were already in state-level existingVideosMeta
-          existingVideosMeta.forEach((v) => {
-            // Put existing videos into General place if they are not already in any place
-            const already = (entry.places || []).some(p => (p.media || []).some(m => m.id === v.id));
-            if (!already) {
-              generalPlace.media.push({
-                id: v.id,
-                type: "video",
-                size: v.size || 0,
-                chunked: true,
-                thumb: v.thumb || null,
-                driveFileId: v.driveFileId || null
-              });
-            }
-          });
-
-          // Clear temp upload UI state
-          currentImages = [];
-          newVideos = [];
-          existingVideosMeta = [];
-
-          // Persist the updated state
           stateData[name] = entry;
           await saveStateToDb(entry);
 
@@ -2665,8 +2108,8 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
           updateSidebar();
           closeModal();
         } catch (err) {
-          console.error("Failed to save state (places flow):", err);
-          alert("Could not save this state. Very large videos may exceed storage. Try shorter clips.");
+          console.error("Failed to save state:", err);
+          alert("Could not save this state.");
           uploadProgressEl.textContent = "";
         } finally {
           saveStateBtn.disabled = false;
@@ -2683,19 +2126,6 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
         saveStateBtn.disabled = true;
 
         try {
-          const entry = stateData[name];
-          if (entry && Array.isArray(entry.places)) {
-            // delete chunked videos for every place
-            for (const p of entry.places) {
-              if (!p || !Array.isArray(p.media)) continue;
-              for (const m of p.media) {
-                if (m && m.type === "video" && m.id) {
-                  await deleteVideoChunks(m.id);
-                }
-              }
-            }
-          }
-
           if (name === HOME_STATE) {
             const record = {
               name: HOME_STATE,
@@ -2723,33 +2153,7 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
         }
       });
 
-      modalCloseBtn.addEventListener("click", closeModal);
-      modalBackdrop.addEventListener("click", (e) => {
-        if (e.target === modalBackdrop) closeModal();
-      });
-
-      // ---------------- Sync functions (Backup / Restore) ----------------
-
-      // Helper: save downloaded video Blob into chunked IndexedDB
-      async function saveVideoBlobIntoChunks(mediaId, blob) {
-        const total = blob.size;
-        let offset = 0;
-        let index = 0;
-
-        while (offset < total) {
-          const slice = blob.slice(offset, offset + CHUNK_SIZE);
-          const arrayBuffer = await slice.arrayBuffer();
-          await saveVideoChunk(mediaId, index, arrayBuffer);
-
-          offset += CHUNK_SIZE;
-          index++;
-
-          await new Promise((r) => setTimeout(r, 0));
-        }
-      }
-
-      // Build snapshot (strip heavy binary) and upload mapState.json to Drive
-      // snapshot now contains places with media metadata
+      // ---------------- Sync functions (Backup / Restore, photos only) ----------------
       async function syncMapStateToDrive() {
         if (!googleAccessToken) {
           alert("Sign in to Google first.");
@@ -2776,8 +2180,7 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
               places: [],
             };
 
-            for (let pi = 0; pi < (entry.places || []).length; pi++) {
-              const p = entry.places[pi];
+            for (const p of entry.places || []) {
               const placeMeta = {
                 id: p.id,
                 name: p.name,
@@ -2787,39 +2190,36 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
 
               for (let i = 0; i < (p.media || []).length; i++) {
                 const m = p.media[i];
+                if (m.type && m.type !== "image") continue;
 
-                if (m.type === "image") {
-                  const meta = {
-                    type: "image",
-                    driveFileId: m.driveFileId || null,
-                  };
+                const meta = {
+                  type: "image",
+                  driveFileId: m.driveFileId || null,
+                };
 
-                  // If not uploaded yet, try to upload current src (dataURL)
-                  if (!meta.driveFileId && m.src && googleAccessToken) {
-                    try {
-                      const fname = name + "-" + (p.name || "place") + "-img-" + Date.now() + "-" + i + ".jpg";
-                      const fileId = await uploadImageToDrive(mediaFolderId, m.src, fname);
-                      if (fileId) {
-                        meta.driveFileId = fileId;
-                        // update local
-                        m.driveFileId = fileId;
-                        await saveStateToDb(stateData[name]); // persist driveFileId immediately
-                      }
-                    } catch (e) {
-                      console.warn("Image upload in backup step failed for", name, e);
+                if (!meta.driveFileId && m.src && googleAccessToken) {
+                  try {
+                    const fname = `${name}-${p.name || "place"}-img-${Date.now()}-${i}.jpg`;
+                    const fileId = await uploadImageToDrive(
+                      mediaFolderId,
+                      m.src,
+                      fname
+                    );
+                    if (fileId) {
+                      meta.driveFileId = fileId;
+                      m.driveFileId = fileId;
+                      await saveStateToDb(stateData[name]);
                     }
+                  } catch (e) {
+                    console.warn(
+                      "Image upload in backup step failed for",
+                      name,
+                      e
+                    );
                   }
-
-                  placeMeta.media.push(meta);
-                } else if (m.type === "video") {
-                  const meta = {
-                    type: "video",
-                    driveFileId: m.driveFileId || null,
-                    size: m.size || 0,
-                    thumb: m.thumb || null,
-                  };
-                  placeMeta.media.push(meta);
                 }
+
+                placeMeta.media.push(meta);
               }
 
               rec.places.push(placeMeta);
@@ -2832,7 +2232,12 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
             type: "application/json",
           });
 
-          const fileId = await uploadFileToDrive(folderId, jsonBlob, "mapState.json", "application/json");
+          const fileId = await uploadFileToDrive(
+            folderId,
+            jsonBlob,
+            "mapState.json",
+            "application/json"
+          );
 
           if (fileId) {
             const ts = new Date().toLocaleString();
@@ -2850,7 +2255,6 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
         }
       }
 
-      // Find latest mapState.json, download and restore; download media referenced and persist
       async function loadMapStateFromDrive() {
         if (!googleAccessToken) {
           alert("Sign in to Google first.");
@@ -2861,9 +2265,15 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
           syncStatusEl.textContent = "Looking for backups…";
 
           const folderId = await ensureDriveFolder();
-          const q = encodeURIComponent("name = 'mapState.json' and trashed = false and '" + folderId + "' in parents");
+          const q = encodeURIComponent(
+            "name = 'mapState.json' and trashed = false and '" +
+              folderId +
+              "' in parents"
+          );
 
-          const data = await driveApiRequest("/files?q=" + q + "&fields=files(id,name,modifiedTime)");
+          const data = await driveApiRequest(
+            "/files?q=" + q + "&fields=files(id,name,modifiedTime)"
+          );
 
           if (!data.files || data.files.length === 0) {
             alert("No backup (mapState.json) found in Drive folder.");
@@ -2871,7 +2281,10 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
             return;
           }
 
-          data.files.sort((a, b) => new Date(b.modifiedTime || 0) - new Date(a.modifiedTime || 0));
+          data.files.sort(
+            (a, b) =>
+              new Date(b.modifiedTime || 0) - new Date(a.modifiedTime || 0)
+          );
 
           const fileId = data.files[0].id;
           syncStatusEl.textContent = "Downloading backup…";
@@ -2891,7 +2304,7 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
               isHome: !!s.isHome,
             };
 
-            for (const p of (s.places || [])) {
+            for (const p of s.places || []) {
               const newPlace = {
                 id: p.id || makeId("place"),
                 name: p.name || "Place",
@@ -2901,67 +2314,39 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
 
               for (let i = 0; i < (p.media || []).length; i++) {
                 const m = p.media[i];
+                if (m.type && m.type !== "image") continue;
 
-                if (m.type === "image") {
-                  let src = null;
-                  if (m.driveFileId) {
-                    try {
-                      const imgBlob = await downloadDriveFileAsBlob_resumable(m.driveFileId);
- 	
-                      src = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => resolve(ev.target.result);
-                        reader.onerror = () => resolve(null);
-                        reader.readAsDataURL(imgBlob);
-                      });
-                    } catch (e) {
-                      console.warn("Failed to download image", m.driveFileId, e);
-                    }
-                  }
-
-                  newPlace.media.push({
-                    id: m.driveFileId || (newPlace.name + "-img-" + i + "-" + Math.random().toString(36).slice(2)),
-                    type: "image",
-                    driveFileId: m.driveFileId || null,
-                    src: src,
-                  });
-                } else if (m.type === "video") {
-                  if (m.driveFileId) {
-                    try {
-                      const vidBlob = await downloadDriveFileAsBlob_resumable(m.driveFileId);
-                      const mediaId = newRec.name + "-vid-" + Date.now() + "-" + i + "-" + Math.random().toString(36).slice(2);
-                      await saveVideoBlobIntoChunks(mediaId, vidBlob);
-
-                      newPlace.media.push({
-                        id: mediaId,
-                        type: "video",
-                        size: vidBlob.size,
-                        chunked: true,
-                        driveFileId: m.driveFileId,
-                        thumb: m.thumb || null,
-                      });
-                    } catch (e) {
-                      console.warn("Failed to restore video", m.driveFileId, e);
-                      newPlace.media.push({
-                        id: m.driveFileId || (newPlace.name + "-vid-" + i + "-missing"),
-                        type: "video",
-                        size: m.size || 0,
-                        chunked: false,
-                        driveFileId: m.driveFileId || null,
-                        thumb: m.thumb || null,
-                      });
-                    }
-                  } else {
-                    newPlace.media.push({
-                      id: m.id || (newPlace.name + "-vid-" + i + "-" + Math.random().toString(36).slice(2)),
-                      type: "video",
-                      size: m.size || 0,
-                      chunked: !!m.chunked,
-                      driveFileId: null,
-                      thumb: m.thumb || null,
+                let src = null;
+                if (m.driveFileId) {
+                  try {
+                    const imgBlob = await downloadDriveFileAsBlob(
+                      m.driveFileId
+                    );
+                    src = await new Promise((resolve) => {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => resolve(ev.target.result);
+                      reader.onerror = () => resolve(null);
+                      reader.readAsDataURL(imgBlob);
                     });
+                  } catch (e) {
+                    console.warn(
+                      "Failed to download image",
+                      m.driveFileId,
+                      e
+                    );
                   }
                 }
+
+                newPlace.media.push({
+                  id:
+                    m.driveFileId ||
+                    `${newPlace.name}-img-${i}-${Math.random()
+                      .toString(36)
+                      .slice(2)}`,
+                  type: "image",
+                  driveFileId: m.driveFileId || null,
+                  src: src,
+                });
               }
 
               newRec.places.push(newPlace);
@@ -2970,13 +2355,11 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
             restored[s.name] = newRec;
           }
 
-          // Overwrite local DB entries with restored data
           for (const [k, r] of Object.entries(restored)) {
             stateData[k] = r;
             await saveStateToDb(r);
           }
 
-          // ensure home state
           if (!stateData[HOME_STATE]) {
             stateData[HOME_STATE] = {
               name: HOME_STATE,
@@ -3003,7 +2386,6 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
         }
       }
 
-      // Wire up backup/restore buttons
       if (backupToDriveBtn) {
         backupToDriveBtn.addEventListener("click", async () => {
           backupToDriveBtn.disabled = true;
@@ -3017,7 +2399,12 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
 
       if (restoreFromDriveBtn) {
         restoreFromDriveBtn.addEventListener("click", async () => {
-          if (!confirm("This will overwrite local saved states with the backup. Continue?")) return;
+          if (
+            !confirm(
+              "This will overwrite local saved states with the backup. Continue?"
+            )
+          )
+            return;
 
           restoreFromDriveBtn.disabled = true;
           try {
@@ -3027,105 +2414,15 @@ async function uploadVideoFileToDrive(parentFolderId, file, name, progressCallba
           }
         });
       }
-// --- Image viewer overlay ---
-const imageViewerBackdrop = document.getElementById("imageViewerBackdrop");
-const imageViewerTitleEl = document.getElementById("imageViewerTitle");
-const imageViewerImgEl = document.getElementById("imageViewerImg");
-const imageViewerCloseBtn = document.getElementById("imageViewerCloseBtn");
 
-function openImageViewer(src, title) {
-  if (!src) return;
-  imageViewerImgEl.src = src;
-  imageViewerTitleEl.textContent = title || "Photo";
-  imageViewerBackdrop.classList.add("active");
-}
-
-function closeImageViewer() {
-  imageViewerImgEl.src = "";
-  imageViewerBackdrop.classList.remove("active");
-}
-
-imageViewerCloseBtn.addEventListener("click", closeImageViewer);
-imageViewerBackdrop.addEventListener("click", (e) => {
-  if (e.target === imageViewerBackdrop) closeImageViewer();
-});
-
-
-
-      // --- Single video player overlay ---
-      const videoPlayerBackdrop = document.getElementById("videoPlayerBackdrop");
-      const videoPlayerTitleEl = document.getElementById("videoPlayerTitle");
-      const videoPlayerSubEl = document.getElementById("videoPlayerSub");
-      const videoPlayerEl = document.getElementById("videoPlayerElement");
-      const videoPlayerCloseBtn = document.getElementById("videoPlayerCloseBtn");
-
-      let currentVideoObjectUrl = null;
-
-      async function playSingleVideo(item) {
-  if (!currentStateName) return;
-
-  if (currentVideoObjectUrl) {
-    URL.revokeObjectURL(currentVideoObjectUrl);
-    currentVideoObjectUrl = null;
-  }
-
-  videoPlayerEl.src = "";
-  videoPlayerSubEl.textContent = "Loading video…";
-  videoPlayerTitleEl.textContent = currentStateName;
-
-  videoPlayerBackdrop.classList.add("active");
-
-  try {
-    let blob = null;
-
-    // 1) Prefer Drive if we have a fileId (Drive-first mode)
-    if (item.driveFileId) {
-      blob = await downloadDriveFileAsBlob_resumable(item.driveFileId);
-    }
-    // 2) Fallback to local chunked storage
-    else if (item.source === "existing" && item.id) {
-      blob = await loadVideoBlob(item.id);
-    }
-    // 3) Freshly uploaded but not yet saved differently
-    else if (item.source === "new" && item.file) {
-      blob = item.file;
-    }
-
-    if (!blob) throw new Error("No data for this video");
-
-    const url = URL.createObjectURL(blob);
-    currentVideoObjectUrl = url;
-    videoPlayerEl.src = url;
-    videoPlayerSubEl.textContent = "Playing selected video";
-    videoPlayerEl.play().catch(() => {});
-  } catch (err) {
-    console.error("Error playing video:", err);
-    videoPlayerSubEl.textContent = "Could not load this video.";
-  }
-}
-
-      function closeVideoPlayer() {
-        if (currentVideoObjectUrl) {
-          URL.revokeObjectURL(currentVideoObjectUrl);
-          currentVideoObjectUrl = null;
-        }
-        videoPlayerEl.pause();
-        videoPlayerEl.src = "";
-        videoPlayerBackdrop.classList.remove("active");
-      }
-
-      videoPlayerCloseBtn.addEventListener("click", closeVideoPlayer);
-      videoPlayerBackdrop.addEventListener("click", (e) => {
-        if (e.target === videoPlayerBackdrop) closeVideoPlayer();
-      });
-
-      // --- Gallery / slideshow ---
+      // --- Gallery / slideshow (photos only) ---
       const galleryBackdrop = document.getElementById("galleryBackdrop");
       const galleryStateTitleEl = document.getElementById("galleryStateTitle");
       const gallerySubtitleEl = document.getElementById("gallerySubtitle");
       const galleryMainEl = document.getElementById("galleryMain");
       const galleryCounterEl = document.getElementById("galleryCounter");
-      const galleryThumbStripEl = document.getElementById("galleryThumbStrip");
+      const galleryThumbStripEl =
+        document.getElementById("galleryThumbStrip");
       const galleryCloseBtn = document.getElementById("galleryCloseBtn");
       const prevMediaBtn = document.getElementById("prevMediaBtn");
       const nextMediaBtn = document.getElementById("nextMediaBtn");
@@ -3142,54 +2439,27 @@ imageViewerBackdrop.addEventListener("click", (e) => {
           galleryCounterEl.textContent = "0 / 0";
           const div = document.createElement("div");
           div.className = "gallery-loading";
-          div.textContent = "No media saved for this place.";
+          div.textContent = "No photos saved for this place.";
           galleryMainEl.appendChild(div);
-          gallerySubtitleEl.textContent = "No media available";
+          gallerySubtitleEl.textContent = "No photos available";
           return;
         }
 
         const current = galleryMedia[galleryIndex];
-        let mainEl;
-
-        if (current.type === "video") {
-          mainEl = document.createElement("video");
-          mainEl.src = current.src;
-          mainEl.controls = true;
-          mainEl.autoplay = true;
-          mainEl.playsInline = true;
-        } else {
-          mainEl = document.createElement("img");
-          mainEl.src = current.src;
-        }
-
+        const mainEl = document.createElement("img");
+        mainEl.src = current.src;
         galleryMainEl.appendChild(mainEl);
-        galleryCounterEl.textContent = galleryIndex + 1 + " / " + galleryMedia.length;
+        galleryCounterEl.textContent =
+          galleryIndex + 1 + " / " + galleryMedia.length;
 
         galleryMedia.forEach((item, idx) => {
           const wrap = document.createElement("div");
           wrap.className = "gallery-thumb";
           if (idx === galleryIndex) wrap.classList.add("active");
 
-          if (item.type === "video") {
-            if (item.thumb) {
-              const img = document.createElement("img");
-              img.src = item.thumb;
-              wrap.appendChild(img);
-            } else {
-              const div = document.createElement("div");
-              div.style.width = "100%";
-              div.style.height = "100%";
-              div.style.display = "flex";
-              div.style.alignItems = "center";
-              div.style.justifyContent = "center";
-              div.textContent = "🎬";
-              wrap.appendChild(div);
-            }
-          } else {
-            const img = document.createElement("img");
-            img.src = item.src;
-            wrap.appendChild(img);
-          }
+          const img = document.createElement("img");
+          img.src = item.src;
+          wrap.appendChild(img);
 
           wrap.addEventListener("click", () => {
             galleryIndex = idx;
@@ -3200,26 +2470,30 @@ imageViewerBackdrop.addEventListener("click", (e) => {
         });
       }
 
-      // openGallery now requires an activePlaceId (selected place)
       async function openGallery() {
         if (!currentStateName) return;
 
         if (!activePlaceId) {
-          alert("Please select a place in this state (click a place in the modal) before opening the gallery.");
+          alert(
+            "Please select a place in this state (click a place in the modal) before opening the gallery."
+          );
           return;
         }
 
         const stateRec = stateData[currentStateName];
         if (!stateRec) return;
-        const place = (stateRec.places || []).find(p => p.id === activePlaceId);
+        const place = (stateRec.places || []).find(
+          (p) => p.id === activePlaceId
+        );
         if (!place) {
           alert("Selected place not found.");
           return;
         }
 
-        galleryStateName = currentStateName + " / " + (place.name || "Place");
+        galleryStateName =
+          currentStateName + " / " + (place.name || "Place");
         galleryStateTitleEl.textContent = galleryStateName;
-        gallerySubtitleEl.textContent = "Loading saved photos & videos…";
+        gallerySubtitleEl.textContent = "Loading saved photos…";
 
         galleryBackdrop.classList.add("active");
         galleryMainEl.innerHTML = "";
@@ -3228,67 +2502,39 @@ imageViewerBackdrop.addEventListener("click", (e) => {
 
         const loadingDiv = document.createElement("div");
         loadingDiv.className = "gallery-loading";
-        loadingDiv.textContent = "Preparing media (videos may take a bit)…";
+        loadingDiv.textContent = "Preparing photos…";
         galleryMainEl.appendChild(loadingDiv);
 
         galleryMedia = [];
         galleryIndex = 0;
 
-        for (const m of (place.media || [])) {
-          if (m.type === "image" && m.src) {
-            galleryMedia.push({
-              type: "image",
-              src: m.src,
-              id: m.id,
-            });
-          } else if (m.type === "video") {
-  try {
-    let blob = null;
-
-    if (m.driveFileId) {
-      blob = await downloadDriveFileAsBlob_resumable(m.driveFileId);
-    } else if (m.id) {
-      blob = await loadVideoBlob(m.id);
-    }
-
-    if (!blob) continue;
-    const url = URL.createObjectURL(blob);
-
-    galleryMedia.push({
-      type: "video",
-      src: url,
-      id: m.id,
-      thumb: m.thumb || null,
-    });
-  } catch (err) {
-    console.error("Failed to load video:", err);
-  }
-}
-
+        for (const m of place.media || []) {
+          if (m.type && m.type !== "image") continue;
+          if (!m.src) continue;
+          galleryMedia.push({
+            type: "image",
+            src: m.src,
+            id: m.id,
+          });
         }
 
         if (!galleryMedia.length) {
           galleryMainEl.innerHTML = "";
           const div = document.createElement("div");
           div.className = "gallery-loading";
-          div.textContent = "No playable media (maybe videos failed to load).";
+          div.textContent = "No photos available for this place.";
           galleryMainEl.appendChild(div);
-          gallerySubtitleEl.textContent = "No media available";
+          gallerySubtitleEl.textContent = "No photos available";
           galleryCounterEl.textContent = "0 / 0";
           return;
         }
 
-        gallerySubtitleEl.textContent = "Slideshow of saved photos & videos for " + (place.name || "this place");
+        gallerySubtitleEl.textContent =
+          "Slideshow of saved photos for " + (place.name || "this place");
         renderGalleryView();
       }
 
       function closeGallery() {
-        galleryMedia.forEach((m) => {
-          if (m.type === "video" && m.src && m.src.startsWith("blob:")) {
-            URL.revokeObjectURL(m.src);
-          }
-        });
-
         galleryBackdrop.classList.remove("active");
         galleryMedia = [];
         galleryIndex = 0;
@@ -3309,7 +2555,8 @@ imageViewerBackdrop.addEventListener("click", (e) => {
 
       prevMediaBtn.addEventListener("click", () => {
         if (!galleryMedia.length) return;
-        galleryIndex = (galleryIndex - 1 + galleryMedia.length) % galleryMedia.length;
+        galleryIndex =
+          (galleryIndex - 1 + galleryMedia.length) % galleryMedia.length;
         renderGalleryView();
       });
 
@@ -3345,7 +2592,6 @@ imageViewerBackdrop.addEventListener("click", (e) => {
                   isHome: stateName === HOME_STATE,
                 };
               } else if (!Array.isArray(stateData[stateName].places)) {
-                // normalize older entry
                 stateData[stateName].places = [];
               }
 
@@ -3369,7 +2615,9 @@ imageViewerBackdrop.addEventListener("click", (e) => {
           updateSidebar();
         } catch (err) {
           console.error("Failed to load India GeoJSON", err);
-          alert("Could not load India map. Check internet connection (first load only).");
+          alert(
+            "Could not load India map. Check internet connection (first load only)."
+          );
         }
       }
 
@@ -3384,19 +2632,17 @@ imageViewerBackdrop.addEventListener("click", (e) => {
         });
       }
 
-      /* Sidebar open/close toggle — paste this before the Accessibility keydown handler */
+      /* Sidebar open/close toggle */
       (function () {
         const sidebar = document.getElementById("sidebar");
         const openBtn = document.getElementById("openSidebarBtn");
         const closeBtn = document.getElementById("closeSidebarBtn");
 
         if (!sidebar || !openBtn || !closeBtn) {
-          // If the DOM elements are missing, we just skip silently.
           console.warn("Sidebar toggle: missing elements (sidebar/open/close).");
           return;
         }
 
-        // Restore saved state (true => closed)
         const saved = localStorage.getItem("sidebarClosed");
         const startClosed = saved === "true";
 
@@ -3425,40 +2671,42 @@ imageViewerBackdrop.addEventListener("click", (e) => {
           applyClosedState(false);
         });
 
-        // Also allow Esc to close the sidebar (when nothing else open)
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape") {
-            // only close sidebar if no modal/gallery/video is active
-            const anyActive = videoPlayerBackdrop.classList.contains("active") ||
+            const anyActive =
               galleryBackdrop.classList.contains("active") ||
-              modalBackdrop.classList.contains("active");
+              modalBackdrop.classList.contains("active") ||
+              imageViewerBackdrop.classList.contains("active");
             if (!anyActive && !sidebar.classList.contains("closed")) {
               applyClosedState(true);
             }
           }
         });
 
-        // Initialize
         applyClosedState(!!startClosed);
 
-        // debug API
         window.appSidebar = {
-          open() { applyClosedState(false); },
-          close() { applyClosedState(true); },
-          toggle() { applyClosedState(!sidebar.classList.contains("closed")); }
+          open() {
+            applyClosedState(false);
+          },
+          close() {
+            applyClosedState(true);
+          },
+          toggle() {
+            applyClosedState(!sidebar.classList.contains("closed"));
+          },
         };
       })();
 
-
+      // Global ESC for overlays
       window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    if (videoPlayerBackdrop.classList.contains("active")) closeVideoPlayer();
-    else if (imageViewerBackdrop.classList.contains("active")) closeImageViewer();
-    else if (galleryBackdrop.classList.contains("active")) closeGallery();
-    else if (modalBackdrop.classList.contains("active")) closeModal();
-  }
-});
-
+        if (e.key === "Escape") {
+          if (imageViewerBackdrop.classList.contains("active"))
+            closeImageViewer();
+          else if (galleryBackdrop.classList.contains("active")) closeGallery();
+          else if (modalBackdrop.classList.contains("active")) closeModal();
+        }
+      });
     </script>
   </body>
 </html>
